@@ -1,19 +1,133 @@
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header styles */
+header {
+    background: #333;
+    color: #fff;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style: none;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+/* Hero Section */
+.hero {
+    background-color: #ff6f61;
+    color: #fff;
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.cta-btn {
+    background-color: #fff;
+    color: #ff6f61;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.cta-btn:hover {
+    background-color: #ff4d40;
+    color: #fff;
+}
+
+/* Features Section */
+.features {
+    display: flex;
+    justify-content: space-around;
+    padding: 50px 20px;
+    background-color: #fff;
+    text-align: center;
+}
+
+.features h2 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+}
+
+.feature {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    width: 30%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feature h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.feature p {
+    font-size: 1rem;
+}
+
+/* Footer styles */
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background-color: #e9ecef; /* Lighter gray background */
-    color: #495057; /* Darker gray text */
+    background-color: #f4f4f4; /* Lighter gray background */
+    color: #343a40; /* Darker black text */
 }
 
 header {
     background-color: #ffffff; /* White background */
     padding: 20px;
     text-align: center;
-    font-size: 24px; /* Original font size */
+    font-size: 24px;
     font-weight: bold;
-    color: #343a40; /* Dark gray text */
+    color: #343a40; /* Darker black text */
     border-bottom: 1px solid #e0e0e0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -24,81 +138,82 @@ nav ul {
     margin: 0;
     display: flex;
     justify-content: center;
-    gap: 30px; /* Increased space between items */
+    gap: 25px;
 }
 
 nav ul li a {
     text-decoration: none;
-    color: #007bff;
+    color: #ff5733; /* Orange color */
     font-size: 18px;
-    padding: 12px 20px;
-    border-radius: 8px; /* Rounded corners on links */
+    padding: 10px 18px;
+    border-radius: 8px;
     transition: all 0.3s;
 }
 
 nav ul li a:hover {
-    background-color: #007bff;
+    background-color: #ff5733; /* Hover effect with orange */
     color: white;
-    transform: translateY(-2px); /* Small lift effect */
+    transform: translateY(-2px);
 }
 
 .delete-all-button {
-    background-color: #ff4d4d;
+    background-color: #ff5733; /* Orange color */
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     margin-top: 20px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     border-radius: 8px;
     transition: background-color 0.3s, transform 0.2s;
 }
 
 .delete-all-button:hover {
-    background-color: #e60000;
-    transform: translateY(-2px); /* Lift effect */
+    background-color: #e14d23; /* Slightly darker orange on hover */
+    transform: translateY(-2px);
 }
 
 .search-container {
     margin: 40px auto;
     text-align: center;
-    width: 60%; /* Centered container */
+    width: 55%;
 }
 
 input[type="text"] {
-    padding: 15px;
+    padding: 12px;
     width: 70%;
-    border: 2px solid #ced4da; /* Lighter gray border */
+    border: 2px solid #ced4da;
     border-radius: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
 }
 
 input[type="text"]:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Blue glow on focus */
+    border-color: #ff5733; /* Orange glow */
+    box-shadow: 0 0 8px rgba(255, 87, 51, 0.5); /* Orange glow on focus */
 }
 
 button {
-    padding: 12px 25px;
+    padding: 10px 20px;
     border: none;
-    background-color: #28a745;
+    background-color: #ff5733; /* Orange color */
     color: white;
     border-radius: 8px;
     cursor: pointer;
     margin-left: 10px;
+    font-size: 14px;
     transition: background-color 0.3s, transform 0.2s;
 }
 
 button:hover {
-    background-color: #218838;
-    transform: translateY(-2px); /* Lift effect */
+    background-color: #e14d23; /* Slightly darker orange */
+    transform: translateY(-2px);
 }
 
 .ingredient-list {
     margin-top: 40px;
     padding: 20px;
-    background-color: #ffffff; /* White background for the list */
+    background-color: #ffffff;
     width: 60%;
     margin-left: auto;
     margin-right: auto;
@@ -114,7 +229,7 @@ button:hover {
 
 .ingredient-list li {
     padding: 12px 0;
-    border-bottom: 1px solid #f1f3f5; /* Light border */
+    border-bottom: 1px solid #f1f3f5;
 }
 
 .ingredient-list li:last-child {
@@ -152,5 +267,15 @@ footer {
 
 #recipesList li:hover {
     background-color: #e9ecef;
-    transform: translateY(-2px); /* Lift effect */
+    transform: translateY(-2px);
+}
+
+/* Larger h1 with modern font */
+h1 {
+    font-size: 36px; /* Larger size for heading */
+    font-family: 'Roboto', sans-serif; /* Modern font */
+    color: #343a40;
+    text-align: center; /* Centered */
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
