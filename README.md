@@ -1,2 +1,2 @@
 RecipeFindr
-finding recipes with AI
+helps people find recipes via help of AI
