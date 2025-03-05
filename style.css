@@ -1,0 +1,156 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #e9ecef; /* Lighter gray background */
+    color: #495057; /* Darker gray text */
+}
+
+header {
+    background-color: #ffffff; /* White background */
+    padding: 20px;
+    text-align: center;
+    font-size: 24px; /* Original font size */
+    font-weight: bold;
+    color: #343a40; /* Dark gray text */
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px; /* Increased space between items */
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #007bff;
+    font-size: 18px;
+    padding: 12px 20px;
+    border-radius: 8px; /* Rounded corners on links */
+    transition: all 0.3s;
+}
+
+nav ul li a:hover {
+    background-color: #007bff;
+    color: white;
+    transform: translateY(-2px); /* Small lift effect */
+}
+
+.delete-all-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.delete-all-button:hover {
+    background-color: #e60000;
+    transform: translateY(-2px); /* Lift effect */
+}
+
+.search-container {
+    margin: 40px auto;
+    text-align: center;
+    width: 60%; /* Centered container */
+}
+
+input[type="text"] {
+    padding: 15px;
+    width: 70%;
+    border: 2px solid #ced4da; /* Lighter gray border */
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+input[type="text"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Blue glow on focus */
+}
+
+button {
+    padding: 12px 25px;
+    border: none;
+    background-color: #28a745;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #218838;
+    transform: translateY(-2px); /* Lift effect */
+}
+
+.ingredient-list {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #ffffff; /* White background for the list */
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ingredient-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ingredient-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f3f5; /* Light border */
+}
+
+.ingredient-list li:last-child {
+    border-bottom: none;
+}
+
+footer {
+    padding: 30px;
+    text-align: center;
+    background-color: #ffffff;
+    border-top: 1px solid #f1f3f5;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
+}
+
+#recipeResults {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 18px;
+}
+
+#recipesList {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+#recipesList li {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#recipesList li:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px); /* Lift effect */
+}
