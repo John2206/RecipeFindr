@@ -22,19 +22,17 @@
     <main>
         <h1>Recipe Ingredients</h1>
 
-
         <div class="search-container">
             <input type="text" id="ingredientInput" placeholder="Enter an ingredient">
             <button onclick="addIngredient()">Add Ingredient</button>
             <button class="delete-all-button" onclick="deleteAllIngredients()">Delete All Ingredients</button>
-            <button onclick="searchRecipes()">Get Recipes</button> <!-- Added Get Recipes Button -->
-            <button onclick="findOtherRecipes()">Find Other Recipes Using These Ingredients</button> <!-- New Button -->
+            <button onclick="searchRecipes()">Get Recipes</button>
+            <button onclick="findOtherRecipes()">Find Other Recipes Using These Ingredients</button>
         </div>
         <div class="ingredient-list">
             <ul id="ingredientList"></ul>
         </div>
 
-        <!-- Display Recipes -->
         <div id="recipeResults">
             <h2>Recipes Based on Your Ingredients:</h2>
             <ul id="recipesList"></ul>
@@ -45,10 +43,8 @@
     </footer>
 
     <script>
-        const apiKey = '301e22fc765b4ffaa81c262f9cd4f68d'; // Replace with your Spoonacular API key
-        const corsProxy = 'https://cors-anywhere.herokuapp.com/'; // CORS proxy workaround
+        const apiBase = 'https://www.themealdb.com/api/json/v1/1/';
 
-        // Function to add an ingredient to the list
         function addIngredient() {
             const input = document.getElementById('ingredientInput');
             const list = document.getElementById('ingredientList');
@@ -57,121 +53,94 @@
                 const listItem = document.createElement('li');
                 listItem.textContent = ingredient;
 
-                // Create delete button
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Delete';
-                deleteButton.onclick = function () {
-                    deleteIngredient(listItem);
-                    searchRecipes();
-                };
+                deleteButton.onclick = () => deleteIngredient(listItem);
 
                 listItem.appendChild(deleteButton);
                 list.appendChild(listItem);
-                input.value = ''; // Clear input after adding the ingredient
+                input.value = '';
             }
         }
 
-        // Function to delete an ingredient
         function deleteIngredient(listItem) {
             listItem.remove();
-            searchRecipes(); // Fetch recipes after deleting an ingredient
         }
 
-        // Function to delete all ingredients
         function deleteAllIngredients() {
-            const list = document.getElementById('ingredientList');
-            list.innerHTML = '';
-            searchRecipes(); // Fetch recipes after deleting all ingredients
+            document.getElementById('ingredientList').innerHTML = '';
         }
 
-        // Function to search for recipes based on ingredients
         function searchRecipes() {
-            const listItems = document.querySelectorAll('#ingredientList li');
-            const ingredients = Array.from(listItems).map(item => item.textContent.replace('Delete', '').trim());
-
-            console.log('Ingredients:', ingredients); // Debug log to check ingredients
-
+            const ingredients = getIngredients();
             if (ingredients.length === 0) {
-                document.getElementById('recipesList').innerHTML = '<li>No ingredients provided yet.</li>';
+                displayNoIngredientsMessage();
                 return;
             }
 
-            const query = ingredients.join(','); // Combine ingredients into a comma-separated string
-            const url = `${corsProxy}https://api.spoonacular.com/recipes/findByIngredients?ingredients=${query}&number=5&apiKey=${apiKey}`;
+            const query = ingredients.join(',');
+            const url = `${apiBase}filter.php?i=${query}`;
 
-            console.log('API URL:', url); // Debug log to check the URL
-
-            // Fetch recipes from the Spoonacular API
             fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => displayRecipes(data))
-                .catch(error => {
-                    console.error('Error fetching recipes:', error);
-                    document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-                });
+                .catch(error => displayErrorMessage(error));
         }
 
-        // Function to display the fetched recipes
-        function displayRecipes(recipes) {
-            const recipesList = document.getElementById('recipesList');
-            recipesList.innerHTML = ''; // Clear previous results
+        function findOtherRecipes() {
+            const ingredients = getIngredients();
+            if (ingredients.length === 0) {
+                displayNoIngredientsMessage();
+                return;
+            }
 
-            if (recipes.length === 0) {
+            const query = ingredients.join(',');
+            const url = `${apiBase}filter.php?i=${query}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => displayRecipes(data))
+                .catch(error => displayErrorMessage(error));
+        }
+
+        function getIngredients() {
+            const listItems = document.querySelectorAll('#ingredientList li');
+            return Array.from(listItems).map(item => item.firstChild.textContent.trim());
+        }
+
+        function displayRecipes(data) {
+            const recipesList = document.getElementById('recipesList');
+            recipesList.innerHTML = '';
+
+            if (!data.meals || data.meals.length === 0) {
                 recipesList.innerHTML = '<li>No recipes found with the given ingredients.</li>';
                 return;
             }
 
-            recipes.forEach(recipe => {
+            data.meals.forEach(recipe => {
                 const recipeItem = document.createElement('li');
                 recipeItem.innerHTML = `
-                    <strong>${recipe.title}</strong><br>
-                    <img src="${recipe.image}" alt="${recipe.title}" width="100">
-                    <a href="https://spoonacular.com/recipes/${recipe.title}-${recipe.id}" target="_blank">View Recipe</a>
+                    <strong>${recipe.strMeal}</strong><br>
+                    <img src="${recipe.strMealThumb}" alt="${recipe.strMeal}" width="100"><br>
+                    <a href="${recipe.strSource}" target="_blank">View Recipe</a>
                 `;
                 recipesList.appendChild(recipeItem);
             });
         }
 
-        // Function to find other recipes using the ingredients
-        function findOtherRecipes() {
-            const listItems = document.querySelectorAll('#ingredientList li');
-            const ingredients = Array.from(listItems).map(item => item.textContent.replace('Delete', '').trim());
-
-            if (ingredients.length === 0) {
-                document.getElementById('recipesList').innerHTML = '<li>No ingredients provided yet.</li>';
-                return;
-            }
-
-            const query = ingredients.join(','); // Combine ingredients into a comma-separated string
-            const url = `${corsProxy}https://api.spoonacular.com/recipes/findByIngredients?ingredients=${query}&number=10&apiKey=${apiKey}`;
-
-            console.log('Other Recipes API URL:', url); // Debug log to check the URL
-
-            // Fetch other recipes from the Spoonacular API based on ingredients
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => displayRecipes(data)) // Display the new recipes
-                .catch(error => {
-                    console.error('Error fetching other recipes:', error);
-                    document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-                });
+        function displayNoIngredientsMessage() {
+            document.getElementById('recipesList').innerHTML = '<li>No ingredients provided yet.</li>';
         }
 
-        // Add event listener to the input field for Enter key press
+        function displayErrorMessage(error) {
+            console.error('Error fetching recipes:', error);
+            document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
+        }
+
         document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent the default Enter key behavior
-                addIngredient(); // Add the ingredient
+                event.preventDefault();
+                addIngredient();
             }
         });
     </script>

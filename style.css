@@ -117,17 +117,21 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background-color: #f4f4f4; /* Lighter gray background */
-    color: #343a40; /* Darker black text */
+    background-color: #f4f4f4;
+    /* Lighter gray background */
+    color: #343a40;
+    /* Darker black text */
 }
 
 header {
-    background-color: #ffffff; /* White background */
+    background-color: #ffffff;
+    /* White background */
     padding: 20px;
     text-align: center;
     font-size: 24px;
     font-weight: bold;
-    color: #343a40; /* Darker black text */
+    color: #343a40;
+    /* Darker black text */
     border-bottom: 1px solid #e0e0e0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -143,7 +147,8 @@ nav ul {
 
 nav ul li a {
     text-decoration: none;
-    color: #ff5733; /* Orange color */
+    color: #ff5733;
+    /* Orange color */
     font-size: 18px;
     padding: 10px 18px;
     border-radius: 8px;
@@ -151,13 +156,15 @@ nav ul li a {
 }
 
 nav ul li a:hover {
-    background-color: #ff5733; /* Hover effect with orange */
+    background-color: #ff5733;
+    /* Hover effect with orange */
     color: white;
     transform: translateY(-2px);
 }
 
 .delete-all-button {
-    background-color: #ff5733; /* Orange color */
+    background-color: #ff5733;
+    /* Orange color */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -169,7 +176,8 @@ nav ul li a:hover {
 }
 
 .delete-all-button:hover {
-    background-color: #e14d23; /* Slightly darker orange on hover */
+    background-color: #e14d23;
+    /* Slightly darker orange on hover */
     transform: translateY(-2px);
 }
 
@@ -189,14 +197,17 @@ input[type="text"] {
 }
 
 input[type="text"]:focus {
-    border-color: #ff5733; /* Orange glow */
-    box-shadow: 0 0 8px rgba(255, 87, 51, 0.5); /* Orange glow on focus */
+    border-color: #ff5733;
+    /* Orange glow */
+    box-shadow: 0 0 8px rgba(255, 87, 51, 0.5);
+    /* Orange glow on focus */
 }
 
 button {
     padding: 10px 20px;
     border: none;
-    background-color: #ff5733; /* Orange color */
+    background-color: #ff5733;
+    /* Orange color */
     color: white;
     border-radius: 8px;
     cursor: pointer;
@@ -206,7 +217,8 @@ button {
 }
 
 button:hover {
-    background-color: #e14d23; /* Slightly darker orange */
+    background-color: #e14d23;
+    /* Slightly darker orange */
     transform: translateY(-2px);
 }
 
@@ -272,10 +284,13 @@ footer {
 
 /* Larger h1 with modern font */
 h1 {
-    font-size: 36px; /* Larger size for heading */
-    font-family: 'Roboto', sans-serif; /* Modern font */
+    font-size: 36px;
+    /* Larger size for heading */
+    font-family: 'Roboto', sans-serif;
+    /* Modern font */
     color: #343a40;
-    text-align: center; /* Centered */
+    text-align: center;
+    /* Centered */
     margin-top: 20px;
     margin-bottom: 20px;
 }
