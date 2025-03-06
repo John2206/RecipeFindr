@@ -1,5 +1,96 @@
-const apiBase = 'https://www.themealdb.com/api/json/v1/1/'; // API base URL
+        
+        const categoriesApi = 'https://www.themealdb.com/api/json/v1/1/list.php?c=list';
+        const areasApi = 'https://www.themealdb.com/api/json/v1/1/list.php?a=list';
+        const ingredientsApi = 'https://www.themealdb.com/api/json/v1/1/list.php?i=list';
 
+// Function to add an ingredient to the list
+function addIngredient() {
+    const input = document.getElementById('ingredientInput');
+    const list = document.getElementById('ingredientList');
+    const ingredient = input.value.trim();
+    if (ingredient) {
+        const listItem = document.createElement('li');
+        listItem.textContent = ingredient;
+
+        // Create delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = function () {
+            deleteIngredient(listItem);
+        };
+
+        listItem.appendChild(deleteButton);
+        list.appendChild(listItem);
+        input.value = ''; // Clear input after adding the ingredient
+    }
+}
+
+// Function to delete an ingredient
+function deleteIngredient(listItem) {
+    listItem.remove();
+}
+
+// Function to fetch categories
+function fetchCategories() {
+    fetch(categoriesApi)
+        .then(response => response.json())
+        .then(data => displayCategories(data.meals))
+        .catch(error => console.error('Error fetching categories:', error));
+}
+
+// Function to fetch areas
+function fetchAreas() {
+    fetch(areasApi)
+        .then(response => response.json())
+        .then(data => displayAreas(data.meals))
+        .catch(error => console.error('Error fetching areas:', error));
+}
+
+// Function to fetch ingredients
+function fetchIngredients() {
+    fetch(ingredientsApi)
+        .then(response => response.json())
+        .then(data => displayIngredients(data.meals))
+        .catch(error => console.error('Error fetching ingredients:', error));
+}
+
+// Function to display categories
+function displayCategories(categories) {
+    const categoriesList = document.getElementById('categoriesList');
+    categoriesList.innerHTML = '';
+    categories.forEach(category => {
+        const listItem = document.createElement('li');
+        listItem.textContent = category.strCategory;
+        categoriesList.appendChild(listItem);
+    });
+}
+
+// Function to display areas
+function displayAreas(areas) {
+    const areasList = document.getElementById('areasList');
+    areasList.innerHTML = '';
+    areas.forEach(area => {
+        const listItem = document.createElement('li');
+        listItem.textContent = area.strArea;
+        areasList.appendChild(listItem);
+    });
+}
+
+// Function to display ingredients
+function displayIngredients(ingredients) {
+    const ingredientsList = document.getElementById('ingredientsList');
+    ingredientsList.innerHTML = '';
+    ingredients.forEach(ingredient => {
+        const listItem = document.createElement('li');
+        listItem.textContent = ingredient.strIngredient;
+        ingredientsList.appendChild(listItem);
+    });
+}
+
+// Call the fetch functions to load data on page load
+fetchCategories();
+fetchAreas();
+fetchIngredients();
 // Function to add an ingredient to the list
 function addIngredient() {
     const input = document.getElementById('ingredientInput');
@@ -123,3 +214,65 @@ document.getElementById('ingredientInput').addEventListener('keypress', function
         addIngredient(); // Add the ingredient
     }
 });
+
+// Function to fetch categories
+function fetchCategories() {
+    fetch(categoriesApi)
+        .then(response => response.json())
+        .then(data => displayCategories(data.meals))
+        .catch(error => console.error('Error fetching categories:', error));
+}
+
+// Function to fetch areas
+function fetchAreas() {
+    fetch(areasApi)
+        .then(response => response.json())
+        .then(data => displayAreas(data.meals))
+        .catch(error => console.error('Error fetching areas:', error));
+}
+
+// Function to fetch ingredients
+function fetchIngredients() {
+    fetch(ingredientsApi)
+        .then(response => response.json())
+        .then(data => displayIngredients(data.meals))
+        .catch(error => console.error('Error fetching ingredients:', error));
+}
+
+// Function to display categories
+function displayCategories(categories) {
+    const categoriesList = document.getElementById('categoriesList');
+    categoriesList.innerHTML = '';
+    categories.forEach(category => {
+        const listItem = document.createElement('li');
+        listItem.textContent = category.strCategory;
+        categoriesList.appendChild(listItem);
+    });
+}
+
+// Function to display areas
+function displayAreas(areas) {
+    const areasList = document.getElementById('areasList');
+    areasList.innerHTML = '';
+    areas.forEach(area => {
+        const listItem = document.createElement('li');
+        listItem.textContent = area.strArea;
+        areasList.appendChild(listItem);
+    });
+}
+
+// Function to display ingredients
+function displayIngredients(ingredients) {
+    const ingredientsList = document.getElementById('ingredientsList');
+    ingredientsList.innerHTML = '';
+    ingredients.forEach(ingredient => {
+        const listItem = document.createElement('li');
+        listItem.textContent = ingredient.strIngredient;
+        ingredientsList.appendChild(listItem);
+    });
+}
+
+// Call the fetch functions to load data on page load
+fetchCategories();
+fetchAreas();
+fetchIngredients();
