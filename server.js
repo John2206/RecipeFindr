@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "yourpassword",
+  password: "password",
   database: "recipeDB",
 });
 
@@ -27,7 +27,25 @@ db.connect((err) => {
   console.log('Connected to MySQL database');
 });
 
-// API Endpoints
+// Endpoint to get recipes based on ingredients
+app.get('/api/recipes', (req, res) => {
+  const ingredients = req.query.q ? req.query.q.split(',') : [];
+
+  if (ingredients.length === 0) {
+    return res.status(400).json({ error: 'No ingredients provided' });
+  }
+
+  const placeholders = ingredients.map(() => '?').join(',');
+  const sql = `SELECT * FROM recipes WHERE ingredients LIKE ${placeholders}`;
+
+  db.query(sql, ingredients.map(ingredient => `%${ingredient}%`), (err, results) => {
+    if (err) {
+      res.status(500).json({ error: 'Failed to fetch recipes' });
+      return;
+    }
+    res.json(results);
+  });
+});
 
 // Get all recipes
 app.get('/recipes', (req, res) => {
@@ -80,31 +98,9 @@ app.delete('/recipes/:id', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
 
 
 
-// Endpoint to get recipes based on ingredients
-app.get('/api/recipes', (req, res) => {
-  const ingredients = req.query.q ? req.query.q.split(',') : [];
-
-  if (ingredients.length === 0) {
-    return res.status(400).json({ error: 'No ingredients provided' });
-  }
-
-  const placeholders = ingredients.map(() => '?').join(',');
-  const sql = `SELECT * FROM recipes WHERE ingredients LIKE ${placeholders}`;
-
-  db.query(sql, ingredients.map(ingredient => `%${ingredient}%`), (err, results) => {
-    if (err) {
-      res.status(500).json({ error: 'Failed to fetch recipes' });
-      return;
-    }
-    res.json(results);
-  });
-});
 
 // Get all users
 app.get("/users", (req, res) => {
