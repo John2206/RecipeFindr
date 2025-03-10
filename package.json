@@ -1,0 +1,27 @@
+{
+  "name": "recipefindr",
+  "version": "1.0.0",
+  "description": "RecipeFindr\r helps people find recipes via help of AI",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/John2206/RecipeFindr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/John2206/RecipeFindr/issues"
+  },
+  "homepage": "https://github.com/John2206/RecipeFindr#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.13.0"
+  }
+}

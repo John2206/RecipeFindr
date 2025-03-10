@@ -1,12 +1,23 @@
 const express = require('express');
 const mysql = require('mysql2');
+const cors = require('cors');
 const bodyParser = require('body-parser');
-// const app = express();
-const PORT = 3000;
+require("dotenv").config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+const port = 5000;
 
 app.use(bodyParser.json());
 
 // MySQL Database Connection
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "yourpassword",
+  database: "recipeDB",
+});
 
 db.connect((err) => {
   if (err) {
@@ -72,30 +83,8 @@ app.delete('/recipes/:id', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-const express = require('express');
-const mysql = require('mysql2');
-const app = express();
-const port = 3000;
 
-// Set up MySQL connection
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root', // your database username
-  password: '', // your database password
-  database: 'recipeDB'
-});
 
-// Connect to the database
-db.connect(err => {
-  if (err) {
-    console.error('Error connecting to the database:', err.stack);
-    return;
-  }
-  console.log('Connected to the database');
-});
-
-// Middleware to parse JSON requests
-app.use(express.json());
 
 // Endpoint to get recipes based on ingredients
 app.get('/api/recipes', (req, res) => {
@@ -114,6 +103,23 @@ app.get('/api/recipes', (req, res) => {
       return;
     }
     res.json(results);
+  });
+});
+
+// Get all users
+app.get("/users", (req, res) => {
+  db.query("SELECT * FROM users", (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
+// Add a user
+app.post("/users", (req, res) => {
+  const { name, email } = req.body;
+  db.query("INSERT INTO users (name, email) VALUES (?, ?)", [name, email], (err, result) => {
+    if (err) throw err;
+    res.json({ message: "User added", id: result.insertId });
   });
 });
 
