@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const bcrypt = require("bcrypt");
 const bodyParser = require('body-parser');
 require("dotenv").config();
 
@@ -13,10 +14,10 @@ app.use(bodyParser.json());
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: "localhost",
+  host: "127.0.0.1",
   user: "root",
-  password: "password",
-  database: "recipeDB",
+  password: "root",
+  database: "recipedb",
 });
 
 db.connect((err) => {
@@ -101,21 +102,41 @@ app.delete('/recipes/:id', (req, res) => {
 
 
 
+// Register User
+app.post("/signup", async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password required" });
+  }
 
-// Get all users
-app.get("/users", (req, res) => {
-  db.query("SELECT * FROM users", (err, results) => {
-    if (err) throw err;
-    res.json(results);
-  });
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    db.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword],
+      (err) => {
+        if (err) return res.status(500).json({ message: "User already exists" });
+        res.json({ message: "✅ User registered successfully!" });
+      });
+  } catch (error) {
+    res.status(500).json({ message: "Error hashing password" });
+  }
 });
 
-// Add a user
-app.post("/users", (req, res) => {
-  const { name, email } = req.body;
-  db.query("INSERT INTO users (name, email) VALUES (?, ?)", [name, email], (err, result) => {
-    if (err) throw err;
-    res.json({ message: "User added", id: result.insertId });
+// Login User
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password required" });
+  }
+
+  db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const match = await bcrypt.compare(password, results[0].password);
+    if (!match) return res.status(401).json({ message: "Incorrect password" });
+
+    res.json({ message: "✅ Login successful!" });
   });
 });
 

@@ -19,9 +19,12 @@
   },
   "homepage": "https://github.com/John2206/RecipeFindr#readme",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mysql2": "^3.13.0"
-  }
+  },
+  "devDependencies": {}
 }

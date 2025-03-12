@@ -17,12 +17,12 @@ function addIngredient() {
             deleteIngredient(listItem);
         };
         // Add event listener to the input field for Enter key press
-document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
-    if (event.key === 'Enter') {
-        event.preventDefault(); // Prevent the default Enter key behavior (form submission)
-        addIngredient(); // Add the ingredient
-    }
-});
+        document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent the default Enter key behavior (form submission)
+                addIngredient(); // Add the ingredient
+            }
+        });
 
         listItem.appendChild(deleteButton);
         list.appendChild(listItem);
@@ -57,33 +57,33 @@ function searchRecipes() {
             'X-RapidAPI-Host': 'tasty.p.rapidapi.com'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);  // Log the entire data object to inspect its structure
-        displayRecipes(data);
-    })
-    .catch(error => displayErrorMessage(error));
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);  // Log the entire data object to inspect its structure
+            displayRecipes(data);
+        })
+        .catch(error => displayErrorMessage(error));
 }
 
 
-    const query = ingredients.join(','); // Combine ingredients into a comma-separated string
-    const url = `${apiBase}filter.php?i=${query}`; // API endpoint to search recipes by ingredients
+const query = ingredients.join(','); // Combine ingredients into a comma-separated string
+const url = `${apiBase}filter.php?i=${query}`; // API endpoint to search recipes by ingredients
 
-    console.log('API URL:', url); // Debug log to check the URL
+console.log('API URL:', url); // Debug log to check the URL
 
-    // Fetch recipes from TheMealDB API
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => displayRecipes(data))
-        .catch(error => {
-            console.error('Error fetching recipes:', error);
-            document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-        });
+// Fetch recipes from TheMealDB API
+fetch(url)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => displayRecipes(data))
+    .catch(error => {
+        console.error('Error fetching recipes:', error);
+        document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
+    });
 
 // Function to display the fetched recipes
 function displayRecipes(data) {
@@ -101,8 +101,8 @@ function displayRecipes(data) {
         const recipeItem = document.createElement('li');
 
         // Check if slug exists, otherwise avoid using undefined in the link
-        const recipeLink = recipe.slug 
-            ? `https://tasty.co/recipe/${recipe.slug}` 
+        const recipeLink = recipe.slug
+            ? `https://tasty.co/recipe/${recipe.slug}`
             : '#';
 
         recipeItem.innerHTML = `
@@ -115,7 +115,7 @@ function displayRecipes(data) {
         `;
 
         // Add event listener to handle click and prevent navigation to invalid links
-        recipeItem.querySelector('a').addEventListener('click', function(event) {
+        recipeItem.querySelector('a').addEventListener('click', function (event) {
             if (!recipe.slug) {
                 event.preventDefault();
                 alert('Recipe link is not available.');
@@ -211,11 +211,60 @@ function displayRecipes(data) {
             <h4>Instructions:</h4>
             <p>${recipe.instructions || 'No instructions available.'}</p>
         `;
-        
+
         // Append the recipe item to the list of recipes
         recipesList.appendChild(recipeItem);
     });
 }
+
+const API_URL = "http://localhost:5000";
+
+async function signup() {
+    const username = document.getElementById("signupUsername").value;
+    const password = document.getElementById("signupPassword").value;
+
+    if (!username || !password) {
+        document.getElementById("message").innerText = "⚠️ Username and password required";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        document.getElementById("message").innerText = data.message;
+    } catch (error) {
+        document.getElementById("message").innerText = error;
+    }
+}
+
+async function login() {
+    const username = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    if (!username || !password) {
+        document.getElementById("message").innerText = "⚠️ Username and password required";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        document.getElementById("message").innerText = data.message;
+    } catch (error) {
+        document.getElementById("message").innerText = error;
+    }
+}
+
 
 
 // Call the fetch functions to load data on page load

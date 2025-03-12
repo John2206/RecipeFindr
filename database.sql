@@ -1,6 +1,4 @@
-CREATE DATABASE recipeDB;
-
-USE recipeDB;
+USE recipedb;
 
 CREATE TABLE recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,10 +11,6 @@ CREATE TABLE recipes (
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100) UNIQUE
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
 );
-
-INSERT INTO users (name, email) VALUES 
-('Alice', 'alice@example.com'),
-('Bob', 'bob@example.com');
