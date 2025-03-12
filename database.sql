@@ -1,6 +1,4 @@
-CREATE DATABASE recipeDB;
-
-USE recipeDB;
+USE recipedb;
 
 CREATE TABLE recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -10,3 +8,11 @@ CREATE TABLE recipes (
     thumbnail_url VARCHAR(255),
     video_url VARCHAR(255)
 );
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'your_password';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';

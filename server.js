@@ -1,22 +1,60 @@
-const express = require('express');
-const mysql = require('mysql2');
-const bodyParser = require('body-parser');
-// const app = express();
-const PORT = 3000;
+require("dotenv").config(); // Load environment variables from .env file
+const express = require("express");
+const mysql = require("mysql2");
+const axios = require("axios");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 
+const app = express();
+const PORT = process.env.PORT || 5000; // Default port 5000 or from environment
+
+// Middleware setup
+app.use(express.json());
 app.use(bodyParser.json());
+app.use(cors());
 
 // MySQL Database Connection
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root', // MySQL username
+  password: process.env.MYSQL_PASSWORD, // Use environment variable for password
+  database: 'recipeDB'
+});
 
 db.connect((err) => {
   if (err) {
-    console.error('Database connection failed:', err);
+    console.error('Error connecting to the database:', err);
     return;
   }
-  console.log('Connected to MySQL database');
+  console.log('Connected to the MySQL database');
 });
 
-// API Endpoints
+// AI request route
+app.post("/ask-ai", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 100,
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, // Use environment variable for API key
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Something went wrong!" });
+  }
+});
 
 // Get all recipes
 app.get('/recipes', (req, res) => {
@@ -33,6 +71,10 @@ app.get('/recipes', (req, res) => {
 // Get recipes by ingredient
 app.get('/recipes/search', (req, res) => {
   const { ingredient } = req.query;
+  if (!ingredient) {
+    return res.status(400).json({ error: 'No ingredient provided' });
+  }
+
   const query = 'SELECT * FROM recipes WHERE ingredients LIKE ?';
   db.query(query, [`%${ingredient}%`], (err, results) => {
     if (err) {
@@ -46,6 +88,10 @@ app.get('/recipes/search', (req, res) => {
 // Add a new recipe
 app.post('/recipes', (req, res) => {
   const { name, ingredients, instructions } = req.body;
+  if (!name || !ingredients || !instructions) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   const query = 'INSERT INTO recipes (name, ingredients, instructions) VALUES (?, ?, ?)';
   db.query(query, [name, ingredients, instructions], (err, result) => {
     if (err) {
@@ -69,55 +115,7 @@ app.delete('/recipes/:id', (req, res) => {
   });
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-});
-const express = require('express');
-const mysql = require('mysql2');
-const app = express();
-const port = 3000;
-
-// Set up MySQL connection
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root', // your database username
-  password: '', // your database password
-  database: 'recipeDB'
-});
-
-// Connect to the database
-db.connect(err => {
-  if (err) {
-    console.error('Error connecting to the database:', err.stack);
-    return;
-  }
-  console.log('Connected to the database');
-});
-
-// Middleware to parse JSON requests
-app.use(express.json());
-
-// Endpoint to get recipes based on ingredients
-app.get('/api/recipes', (req, res) => {
-  const ingredients = req.query.q ? req.query.q.split(',') : [];
-
-  if (ingredients.length === 0) {
-    return res.status(400).json({ error: 'No ingredients provided' });
-  }
-
-  const placeholders = ingredients.map(() => '?').join(',');
-  const sql = `SELECT * FROM recipes WHERE ingredients LIKE ${placeholders}`;
-
-  db.query(sql, ingredients.map(ingredient => `%${ingredient}%`), (err, results) => {
-    if (err) {
-      res.status(500).json({ error: 'Failed to fetch recipes' });
-      return;
-    }
-    res.json(results);
-  });
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
 });
