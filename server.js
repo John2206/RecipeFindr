@@ -17,7 +17,7 @@ app.use(cors());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root', // MySQL username
-  password: process.env.MYSQL_PASSWORD, // Use environment variable for password
+  password: 'root', // Use environment variable for password
   database: 'recipeDB'
 });
 
