@@ -1,14 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>RecipeFindr</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .menu-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .menu-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 30%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(100%);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay a {
+            color: white;
+            text-decoration: none;
+            font-size: 26px;
+            margin: 15px 0;
+            font-family: "Arial", sans-serif;
+            font-weight: 500;
+            letter-spacing: 1px;
+            transition: opacity 0.3s ease-in-out, text-decoration 0.3s ease-in-out;
+        }
+
+        .overlay a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        .overlay.show {
+            transform: translateX(0);
+        }
+
+        .dimmed::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 70%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .dimmed.fade-in::before {
+            opacity: 1;
+        }
+    </style>
 </head>
 
 <body>
+<<<<<<< HEAD
     <header>
         <nav>
             <ul>
@@ -20,6 +93,15 @@
             </ul>
         </nav>
     </header>
+=======
+    <span class="menu-icon" onclick="toggleMenu()">&#x22EE;</span>
+
+    <div id="overlay" class="overlay">
+        <a href="recipes.html">Recipes</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+    </div>
+>>>>>>> main
 
     <main>
         <section class="hero">
@@ -27,27 +109,62 @@
             <p>Discover and create your favorite recipes with the ingredients you already have!</p>
             <a href="recipes.html" class="cta-btn">Browse Recipes</a>
         </section>
-
-        <section class="features">
-            <h2>What We Offer</h2>
-            <div class="feature">
-                <h3>Personalized Recipes</h3>
-                <p>Find recipes based on ingredients you already have in your kitchen.</p>
-            </div>
-            <div class="feature">
-                <h3>Meal Planning</h3>
-                <p>Create meal plans for the week with our easy-to-use tools.</p>
-            </div>
-            <div class="feature">
-                <h3>Recipe Sharing</h3>
-                <p>Share your own recipes with the community.</p>
-            </div>
-        </section>
     </main>
+
+    <section class="features">
+        <h2>What We Offer</h2>
+        <div class="feature">
+            <h3>Personalized Recipes</h3>
+            <p>Find recipes based on ingredients you already have in your kitchen.</p>
+        </div>
+        <div class="feature">
+            <h3>Meal Planning</h3>
+            <p>Create meal plans for the week with our easy-to-use tools.</p>
+        </div>
+        <div class="feature">
+            <h3>Recipe Sharing</h3>
+            <p>Share your own recipes with the community.</p>
+        </div>
+    </section>
 
     <footer>
         <p>&copy; 2025 RecipeFindr | All Rights Reserved</p>
     </footer>
-</body>
 
+    <script>
+        function toggleMenu() {
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            
+            if (overlay.classList.contains('show')) {
+                closeMenu();
+            } else {
+                overlay.classList.add('show');
+                setTimeout(() => {
+                    body.classList.add('dimmed', 'fade-in');
+                }, 600); // Delays background dimming to match animation
+            }
+        }
+
+        function closeMenu() {
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+
+            body.classList.remove('fade-in');
+            setTimeout(() => {
+                body.classList.remove('dimmed');
+                overlay.classList.remove('show');
+            }, 300); // Fades out the background before closing the menu
+        }
+
+        document.addEventListener('click', function (event) {
+            const overlay = document.getElementById('overlay');
+            const menuIcon = document.querySelector('.menu-icon');
+
+            if (overlay.classList.contains('show') && !overlay.contains(event.target) && !menuIcon.contains(event.target)) {
+                closeMenu();
+            }
+        });
+    </script>
+</body>
 </html>

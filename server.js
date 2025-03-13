@@ -9,6 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const port = 5000;
+const axios = require("axios");
+const cors = require("cors");
+
+const PORT = process.env.PORT || 5000; // Default port 5000 or from environment
 
 app.use(bodyParser.json());
 
@@ -22,10 +26,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error('Database connection failed:', err);
+    console.error('Error connecting to the database:', err);
     return;
   }
-  console.log('Connected to MySQL database');
+  console.log('Connected to the MySQL database');
 });
 
 // Endpoint to get recipes based on ingredients
@@ -47,6 +51,32 @@ app.get('/api/recipes', (req, res) => {
     res.json(results);
   });
 });
+// AI request route
+app.post("/ask-ai", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 100,
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, // Use environment variable for API key
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Something went wrong!" });
+  }
+});
 
 // Get all recipes
 app.get('/recipes', (req, res) => {
@@ -63,6 +93,10 @@ app.get('/recipes', (req, res) => {
 // Get recipes by ingredient
 app.get('/recipes/search', (req, res) => {
   const { ingredient } = req.query;
+  if (!ingredient) {
+    return res.status(400).json({ error: 'No ingredient provided' });
+  }
+
   const query = 'SELECT * FROM recipes WHERE ingredients LIKE ?';
   db.query(query, [`%${ingredient}%`], (err, results) => {
     if (err) {
@@ -76,6 +110,10 @@ app.get('/recipes/search', (req, res) => {
 // Add a new recipe
 app.post('/recipes', (req, res) => {
   const { name, ingredients, instructions } = req.body;
+  if (!name || !ingredients || !instructions) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   const query = 'INSERT INTO recipes (name, ingredients, instructions) VALUES (?, ?, ?)';
   db.query(query, [name, ingredients, instructions], (err, result) => {
     if (err) {
@@ -141,6 +179,6 @@ app.post("/login", (req, res) => {
 });
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
