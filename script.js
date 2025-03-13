@@ -1,293 +1,199 @@
-const apiKey = '3a3092b906mshb02d0e8fc4f1a3cp191944jsn197fe7739308';
-const apiUrl = 'https://tasty.p.rapidapi.com/recipes/list?from=0&size=20&tags=under_30_minutes';
+const API_URL = "http://localhost:5000";
+let currentPage = 1;  // To keep track of which page of results we are on
 
 // Function to add an ingredient to the list
 function addIngredient() {
-    const input = document.getElementById('ingredientInput');
-    const list = document.getElementById('ingredientList');
+    const input = document.getElementById("ingredientInput");
+    const list = document.getElementById("ingredientList");
     const ingredient = input.value.trim();
+
     if (ingredient) {
-        const listItem = document.createElement('li');
+        const listItem = document.createElement("li");
         listItem.textContent = ingredient;
 
         // Create delete button
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.onclick = function () {
-            deleteIngredient(listItem);
-        };
-        // Add event listener to the input field for Enter key press
-        document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent the default Enter key behavior (form submission)
-                addIngredient(); // Add the ingredient
-            }
-        });
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "❌";
+        deleteButton.onclick = () => listItem.remove();
 
         listItem.appendChild(deleteButton);
         list.appendChild(listItem);
-        input.value = ''; // Clear input after adding the ingredient
+        input.value = "";
     }
-}
-
-// Function to delete an ingredient
-function deleteIngredient(listItem) {
-    listItem.remove();
 }
 
 // Function to delete all ingredients
 function deleteAllIngredients() {
-    const list = document.getElementById('ingredientList');
-    list.innerHTML = '';
+    document.getElementById("ingredientList").innerHTML = "";
 }
 
 // Function to get all ingredients from the list
 function getIngredients() {
-    const ingredients = [];
-    const listItems = document.querySelectorAll('#ingredientList li');
-    listItems.forEach(item => {
-        ingredients.push(item.textContent.replace('Delete', '').trim());
-    });
-    return ingredients;
+    return Array.from(document.querySelectorAll("#ingredientList li"))
+        .map(item => item.textContent.replace("❌", "").trim())
+        .filter(ingredient => ingredient); // Filter out empty ingredients
 }
 
-// Function to search for recipes based on ingredients
-function searchRecipes() {
+
+// Search recipes by ingredient (from local database)
+async function searchRecipes() {
     const ingredients = getIngredients();
     if (ingredients.length === 0) {
-        displayNoIngredientsMessage();
+        alert("Please add some ingredients first!");
         return;
     }
 
-    const query = ingredients.join(',');
-    fetch(`${apiUrl}&q=${query}`, {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Key': apiKey,
-            'X-RapidAPI-Host': 'tasty.p.rapidapi.com'
+    try {
+        const response = await fetch(`${API_URL}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`);
+        const recipes = await response.json();
+
+        const resultsList = document.getElementById("searchResults");
+        resultsList.innerHTML = ""; // Clear previous results
+
+        if (recipes.length === 0) {
+            resultsList.innerHTML = "<li>No recipes found with these ingredients.</li>";
+            return;
         }
-    })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);  // Log the entire data object to inspect its structure
-            displayRecipes(data);
-        })
-        .catch(error => displayErrorMessage(error));
+
+        recipes.forEach(recipe => {
+            const recipeItem = document.createElement("li");
+            recipeItem.innerHTML = `
+                <strong>${recipe.name}</strong><br>
+                Ingredients: ${recipe.ingredients}<br>
+                Instructions: ${recipe.instructions}<br>
+                <hr>
+            `;
+            resultsList.appendChild(recipeItem);
+        });
+
+        // Add button to load more recipes
+        const loadMoreButton = document.createElement("button");
+        loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
+        loadMoreButton.onclick = loadMoreRecipes;
+        resultsList.appendChild(loadMoreButton);
+
+    } catch (error) {
+        console.error("Error fetching recipes:", error);
+    }
 }
 
-// Function to display a message when no ingredients are entered
-function displayNoIngredientsMessage() {
-    const recipesList = document.getElementById('recipesList');
-    recipesList.innerHTML = '<li>Please add some ingredients to search for recipes.</li>';
+// Function to load more recipes
+async function loadMoreRecipes() {
+    currentPage++; // Increase the page number
+    searchRecipes(); // Fetch the next set of recipes
 }
 
-const query = ingredients.join(','); // Combine ingredients into a comma-separated string
-const url = `${apiBase}filter.php?i=${query}`; // API endpoint to search recipes by ingredients
+// Fetch all recipes from local backend (limited to 10)
+async function fetchRecipes() {
+    try {
+        const recipeList = document.getElementById("recipeList");
+        recipeList.innerHTML = "<li>Loading...</li>"; // Show loading text
 
-console.log('API URL:', url); // Debug log to check the URL
+        const response = await fetch(`${API_URL}/recipes?limit=10&page=${currentPage}`);
+        const recipes = await response.json();
 
-// Fetch recipes from TheMealDB API
-fetch(url)
-    .then(response => {
+        recipeList.innerHTML = ""; // Clear loading text
+
+        if (recipes.length === 0) {
+            recipeList.innerHTML = "<li>No recipes found.</li>";
+            return;
+        }
+
+        recipes.forEach(recipe => {
+            const recipeItem = document.createElement("li");
+            recipeItem.innerHTML = `
+                <strong>${recipe.name}</strong><br>
+                Ingredients: ${recipe.ingredients}<br>
+                Instructions: ${recipe.instructions}<br>
+                <button onclick="deleteRecipe(${recipe.id})">❌ Delete</button>
+                <hr>
+            `;
+            recipeList.appendChild(recipeItem);
+        });
+
+        // Add button to load more recipes
+        const loadMoreButton = document.createElement("button");
+        loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
+        loadMoreButton.onclick = loadMoreRecipes;
+        recipeList.appendChild(loadMoreButton);
+    } catch (error) {
+        console.error("Error fetching recipes:", error);
+    }
+}
+
+// Add a new recipe (to local database)
+async function addRecipe() {
+    const name = document.getElementById("recipeName").value.trim();
+    const ingredients = document.getElementById("recipeIngredients").value.trim();
+    const instructions = document.getElementById("recipeInstructions").value.trim();
+
+    if (!name || !ingredients || !instructions) {
+        alert("Please fill in all fields!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/recipes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, ingredients, instructions }),
+        });
+
+        const result = await response.json();
+        alert(result.message);
+        fetchRecipes();
+
+        // Clear input fields after submission
+        document.getElementById("recipeName").value = "";
+        document.getElementById("recipeIngredients").value = "";
+        document.getElementById("recipeInstructions").value = "";
+    } catch (error) {
+        console.error("Error adding recipe:", error);
+    }
+}
+
+// Delete a recipe
+async function deleteRecipe(id) {
+    if (!confirm("Are you sure you want to delete this recipe?")) return;
+
+    try {
+        const button = event.target;
+        button.disabled = true; // Disable button to prevent multiple clicks
+
+        const response = await fetch(`${API_URL}/recipes/${id}`, { method: "DELETE" });
+        const result = await response.json();
+        alert(result.message);
+        fetchRecipes();
+    } catch (error) {
+        console.error("Error deleting recipe:", error);
+    }
+}
+
+// Ask AI for a recipe suggestion
+async function askAI() {
+    const prompt = document.getElementById("recipePrompt").value.trim();
+    if (!prompt) {
+        alert("Enter a question for AI!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/ask-ai`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }),
+        });
+
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(`Error: ${response.statusText}`);
         }
-        return response.json();
-    })
-    .then(data => displayRecipes(data))
-    .catch(error => {
-        console.error('Error fetching recipes:', error);
-        document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-    });
-// Function to handle errors
-function displayErrorMessage(error) {
-    console.error(error);
-    const recipesList = document.getElementById('recipesList');
-    recipesList.innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-} main
-
-// Function to display the fetched recipes
-function displayRecipes(data) {
-    const recipesList = document.getElementById('recipesList');
-    recipesList.innerHTML = ''; // Clear previous results
-
-    if (!data.results || data.results.length === 0) {
-        recipesList.innerHTML = '<li>No recipes found with the given ingredients.</li>';
-        return;
-    }
-
-    data.results.forEach(recipe => {
-        const recipeItem = document.createElement('li');
-        recipeItem.classList.add('recipe-item'); // Add a class for styling purposes
-
-        // Check if slug exists, otherwise avoid using undefined in the link
-        const recipeLink = recipe.slug
-            ? `https://tasty.co/recipe/${recipe.slug}`
-            : '#';
-
-        recipeItem.innerHTML = `
-            <h3>${recipe.name}</h3>
-            ${recipe.thumbnail_url ? `<img src="${recipe.thumbnail_url}" alt="${recipe.name}" width="200"><br>` : ''}
-            <h4>Ingredients:</h4>
-            <ul>
-                ${recipe.ingredients ? recipe.ingredients.map(ingredient => `<li>${ingredient.name}</li>`).join('') : '<li>No ingredients listed</li>'}
-            </ul>
-            <h4>Instructions:</h4>
-            <p>${recipe.instructions || 'No instructions available.'}</p>
-            ${recipe.slug ? `<a href="https://tasty.co/recipe/${recipe.slug}" target="_blank">View Recipe</a>` : '<p>Recipe link not available</p>'}
-        `;
-
-        // Add event listener to handle click and prevent navigation to invalid links
-        recipeItem.querySelector('a').addEventListener('click', function (event) {
-            if (!recipe.slug) {
-                event.preventDefault();
-                alert('Recipe link is not available.');
-            }
-        });
-        recipesList.appendChild(recipeItem);
-    });
-}
-
-// Function to handle 'Enter' key for ingredient input
-document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
-    if (event.key === 'Enter') {
-        event.preventDefault(); // Prevent the default Enter key behavior (form submission)
-        addIngredient(); // Add the ingredient
-    }
-});
-
-// Fetch data functions for categories, areas, and ingredients
-function fetchCategories() {
-    fetch('https://www.themealdb.com/api/json/v1/1/categories.php')
-        .then(response => response.json())
-        .then(data => displayCategories(data.categories))
-        .catch(error => console.error('Error fetching categories:', error));
-}
-
-function fetchAreas() {
-    fetch('https://www.themealdb.com/api/json/v1/1/areas.php')
-        .then(response => response.json())
-        .then(data => displayAreas(data.areas))
-        .catch(error => console.error('Error fetching areas:', error));
-}
-
-function fetchIngredients() {
-    fetch('https://www.themealdb.com/api/json/v1/1/ingredients.php')
-        .then(response => response.json())
-        .then(data => displayIngredients(data.ingredients))
-        .catch(error => console.error('Error fetching ingredients:', error));
-}
-
-// Display functions for categories, areas, and ingredients
-function displayCategories(categories) {
-    const categoriesList = document.getElementById('categoriesList');
-    categoriesList.innerHTML = '';
-    categories.forEach(category => {
-        const listItem = document.createElement('li');
-        listItem.textContent = category.strCategory;
-        categoriesList.appendChild(listItem);
-    });
-}
-
-function displayAreas(areas) {
-    const areasList = document.getElementById('areasList');
-    areasList.innerHTML = '';
-    areas.forEach(area => {
-        const listItem = document.createElement('li');
-        listItem.textContent = area.strArea;
-        areasList.appendChild(listItem);
-    });
-}
-
-function displayIngredients(ingredients) {
-    const ingredientsList = document.getElementById('ingredientsList');
-    ingredientsList.innerHTML = '';
-    ingredients.forEach(ingredient => {
-        const listItem = document.createElement('li');
-        listItem.textContent = ingredient.strIngredient;
-        ingredientsList.appendChild(listItem);
-    });
-}
-// Function to display recipes directly on the website
-function displayRecipes(data) {
-    const recipesList = document.getElementById('recipesList');
-    recipesList.innerHTML = ''; // Clear previous results
-
-    if (!data.results || data.results.length === 0) {
-        recipesList.innerHTML = '<li>No recipes found with the given ingredients.</li>';
-        return;
-    }
-
-    data.results.forEach(recipe => {
-        const recipeItem = document.createElement('li');
-        recipeItem.classList.add('recipe-item'); // Add a class for styling purposes
-
-        // Display recipe name, image, and ingredients directly on the page
-        recipeItem.innerHTML = `
-            <h3>${recipe.name}</h3>
-            ${recipe.thumbnail_url ? `<img src="${recipe.thumbnail_url}" alt="${recipe.name}" width="200"><br>` : ''}
-            <h4>Ingredients:</h4>
-            <ul>
-                ${recipe.ingredients ? recipe.ingredients.map(ingredient => `<li>${ingredient.name}</li>`).join('') : '<li>No ingredients listed</li>'}
-            </ul>
-            <h4>Instructions:</h4>
-            <p>${recipe.instructions || 'No instructions available.'}</p>
-        `;
-
-        // Append the recipe item to the list of recipes
-        recipesList.appendChild(recipeItem);
-    });
-}
-
-const API_URL = "http://localhost:5000";
-
-async function signup() {
-    const username = document.getElementById("signupUsername").value;
-    const password = document.getElementById("signupPassword").value;
-
-    if (!username || !password) {
-        document.getElementById("message").innerText = "⚠️ Username and password required";
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_URL}/signup`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
 
         const data = await response.json();
-        document.getElementById("message").innerText = data.message;
+        document.getElementById("aiResponse").innerText = data.choices ? data.choices[0].message.content : "No response.";
     } catch (error) {
-        document.getElementById("message").innerText = error;
+        document.getElementById("aiResponse").innerText = `Error getting AI response: ${error.message}`;
     }
 }
 
-async function login() {
-    const username = document.getElementById("loginUsername").value;
-    const password = document.getElementById("loginPassword").value;
-
-    if (!username || !password) {
-        document.getElementById("message").innerText = "⚠️ Username and password required";
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
-
-        const data = await response.json();
-        document.getElementById("message").innerText = data.message;
-    } catch (error) {
-        document.getElementById("message").innerText = error;
-    }
-}
-
-// Call the fetch functions to load data on page load
-fetchCategories();
-fetchAreas();
-fetchIngredients();
+// Load recipes on page load
+document.addEventListener("DOMContentLoaded", fetchRecipes);

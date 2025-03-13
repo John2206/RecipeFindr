@@ -14,6 +14,7 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                <li><a href="register.html">Register</a></li>
             </ul>
         </nav>
     </header>
@@ -43,8 +44,7 @@
         </footer>
 
         <script>
-            const apiKey = '3a3092b906mshb02d0e8fc4f1a3cp191944jsn197fe7739308';
-            const apiUrl = 'https://tasty.p.rapidapi.com/recipes/list?from=0&size=20&tags=under_30_minutes';
+            // Removed old API key as OpenAI API is being used now
 
             // Function to add an ingredient to the list
             function addIngredient() {
@@ -94,16 +94,9 @@
                 }
 
                 const query = ingredients.join(',');
-                fetch(`${apiUrl}&q=${query}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-RapidAPI-Key': apiKey,
-                        'X-RapidAPI-Host': 'tasty.p.rapidapi.com'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => displayRecipes(data))
-                .catch(error => displayErrorMessage(error));
+                // Replace the following with OpenAI API request logic
+                console.log("Searching recipes with ingredients:", query);
+                // Use the OpenAI API to fetch recipes if you want
             }
 
             // Function to find other recipes using the same ingredients
@@ -151,7 +144,6 @@
                     addIngredient(); // Add the ingredient
                 }
             });
-
         </script>
     </body>
 </html>
