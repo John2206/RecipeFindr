@@ -18,17 +18,10 @@ app.use(bodyParser.json());
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-<<<<<<< HEAD
-  host: 'localhost',
-  user: 'root', // MySQL username
-  password: 'root', // Use environment variable for password
-  database: 'recipeDB'
-=======
   host: "127.0.0.1",
   user: "root",
   password: "root",
   database: "recipedb",
->>>>>>> 6defec9153e2006b9f6a55041dc706ee3eaba94b
 });
 
 db.connect((err) => {
