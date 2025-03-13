@@ -1,24 +1,27 @@
-require("dotenv").config(); // Load environment variables from .env file
-const express = require("express");
-const mysql = require("mysql2");
-const axios = require("axios");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+const express = require('express');
+const mysql = require('mysql2');
+const cors = require('cors');
+const bcrypt = require("bcrypt");
+const bodyParser = require('body-parser');
+require("dotenv").config();
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+const port = 5000;
+const axios = require("axios");
+const cors = require("cors");
+
 const PORT = process.env.PORT || 5000; // Default port 5000 or from environment
 
-// Middleware setup
-app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
 
 // MySQL Database Connection
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root', // MySQL username
-  password: process.env.MYSQL_PASSWORD, // Use environment variable for password
-  database: 'recipeDB'
+  host: "127.0.0.1",
+  user: "root",
+  password: "root",
+  database: "recipedb",
 });
 
 db.connect((err) => {
@@ -29,6 +32,25 @@ db.connect((err) => {
   console.log('Connected to the MySQL database');
 });
 
+// Endpoint to get recipes based on ingredients
+app.get('/api/recipes', (req, res) => {
+  const ingredients = req.query.q ? req.query.q.split(',') : [];
+
+  if (ingredients.length === 0) {
+    return res.status(400).json({ error: 'No ingredients provided' });
+  }
+
+  const placeholders = ingredients.map(() => '?').join(',');
+  const sql = `SELECT * FROM recipes WHERE ingredients LIKE ${placeholders}`;
+
+  db.query(sql, ingredients.map(ingredient => `%${ingredient}%`), (err, results) => {
+    if (err) {
+      res.status(500).json({ error: 'Failed to fetch recipes' });
+      return;
+    }
+    res.json(results);
+  });
+});
 // AI request route
 app.post("/ask-ai", async (req, res) => {
   try {
@@ -112,6 +134,47 @@ app.delete('/recipes/:id', (req, res) => {
     } else {
       res.json({ message: 'Recipe deleted successfully' });
     }
+  });
+});
+
+
+
+
+// Register User
+app.post("/signup", async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password required" });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    db.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword],
+      (err) => {
+        if (err) return res.status(500).json({ message: "User already exists" });
+        res.json({ message: "✅ User registered successfully!" });
+      });
+  } catch (error) {
+    res.status(500).json({ message: "Error hashing password" });
+  }
+});
+
+// Login User
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password required" });
+  }
+
+  db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const match = await bcrypt.compare(password, results[0].password);
+    if (!match) return res.status(401).json({ message: "Incorrect password" });
+
+    res.json({ message: "✅ Login successful!" });
   });
 });
 

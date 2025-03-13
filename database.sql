@@ -14,5 +14,6 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );
+
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'your_password';
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
