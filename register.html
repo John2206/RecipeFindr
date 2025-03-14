@@ -1,34 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
-    <link rel="stylesheet" href="style.css">
-    <div id="overlay" class="overlay">
-        <a href="index.html">Home</a>
-        <a href="recipes.html">Recipes</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Node.js + SQL App</title>
+    <title>Login - RecipeFindr</title>
+    <style>
+        /* Reset some default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ff6f61;
+            /* Bright orange background */
+            color: white;
+            text-align: center;
+        }
+
+        /* Navigation Bar */
+        header {
+            background-color: #fff;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        nav ul li {
+            display: inline;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #ff5733;
+            font-size: 18px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #ff5733;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Login Box */
+        .login-container {
+            background: white;
+            width: 30%;
+            min-width: 300px;
+            margin: 80px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: #333;
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: #ff5733;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: #ff5733;
+            box-shadow: 0 0 8px rgba(255, 87, 51, 0.5);
+        }
+
+        /* Button */
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #ff5733;
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #e14d23;
+            transform: translateY(-2px);
+        }
+
+        /* Register Link */
+        .register-link {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .register-link a {
+            color: #ff5733;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>Sign Up</h2>
-        <input type="text" id="signupUsername" placeholder="Username">
-        <input type="password" id="signupPassword" placeholder="Password">
-        <button onclick="signup()">Register</button>
 
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="recipes.html">Recipes</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Login Form -->
+    <div class="login-container">
         <h2>Login</h2>
         <input type="text" id="loginUsername" placeholder="Username">
         <input type="password" id="loginPassword" placeholder="Password">
         <button onclick="login()">Login</button>
 
+        <p class="register-link">Don't have an account? <a href="register.html">Register here</a></p>
+
         <p id="message"></p>
     </div>
 
-    <script src="script.js"></script>
+    <footer>
+        &copy; 2025 RecipeFindr. All rights reserved.
+    </footer>
+
+    <script>
+        function login() {
+            const username = document.getElementById("loginUsername").value;
+            const password = document.getElementById("loginPassword").value;
+            const message = document.getElementById("message");
+
+            if (username === "user" && password === "password") {
+                message.style.color = "green";
+                message.textContent = "Login successful!";
+                setTimeout(() => {
+                    window.location.href = "recipes.html";
+                }, 1000);
+            } else {
+                message.style.color = "red";
+                message.textContent = "Invalid username or password.";
+            }
+        }
+    </script>
+
 </body>
 
 </html>
