@@ -15,18 +15,20 @@
 
         body {
             font-family: Arial, sans-serif;
-            background-color: #ff6f61;
-            /* Bright orange background */
+            background-color: #ff6f61; /* Bright orange background */
             color: white;
             text-align: center;
         }
 
         /* Navigation Bar */
         header {
-            background-color: #fff;
-            padding: 15px;
+            background-color: #ffffff;
+            padding: 20px;
             text-align: center;
-            border-bottom: 2px solid #e0e0e0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #343a40;
+            border-bottom: 1px solid #e0e0e0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
@@ -58,7 +60,7 @@
             transform: translateY(-2px);
         }
 
-        /* Login Box */
+        /* Login/Register Box */
         .login-container {
             background: white;
             width: 30%;
@@ -110,19 +112,19 @@
             transform: translateY(-2px);
         }
 
-        /* Register Link */
-        .register-link {
+        /* Toggle Link */
+        .toggle-link {
             margin-top: 15px;
             font-size: 16px;
         }
 
-        .register-link a {
+        .toggle-link a {
             color: #ff5733;
             text-decoration: none;
             font-weight: bold;
         }
 
-        .register-link a:hover {
+        .toggle-link a:hover {
             text-decoration: underline;
         }
 
@@ -150,14 +152,26 @@
         </nav>
     </header>
 
-    <!-- Login Form -->
-    <div class="login-container">
-        <h2>Login</h2>
-        <input type="text" id="loginUsername" placeholder="Username">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button onclick="login()">Login</button>
+    <!-- Login/Register Form Container -->
+    <div class="login-container" id="authContainer">
+        <h2 id="formTitle">Login</h2>
+        
+        <!-- Login Form -->
+        <div id="loginForm">
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <p class="toggle-link">Don't have an account? <a href="#" onclick="showRegister()">Register here</a></p>
+        </div>
 
-        <p class="register-link">Don't have an account? <a href="register.html">Register here</a></p>
+        <!-- Register Form (Initially Hidden) -->
+        <div id="registerForm" style="display: none;">
+            <input type="text" id="registerUsername" placeholder="Username">
+            <input type="email" id="registerEmail" placeholder="Email">
+            <input type="password" id="registerPassword" placeholder="Password">
+            <button onclick="register()">Register</button>
+            <p class="toggle-link">Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+        </div>
 
         <p id="message"></p>
     </div>
@@ -167,6 +181,18 @@
     </footer>
 
     <script>
+        function showRegister() {
+            document.getElementById("formTitle").textContent = "Register";
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("registerForm").style.display = "block";
+        }
+
+        function showLogin() {
+            document.getElementById("formTitle").textContent = "Login";
+            document.getElementById("registerForm").style.display = "none";
+            document.getElementById("loginForm").style.display = "block";
+        }
+
         function login() {
             const username = document.getElementById("loginUsername").value;
             const password = document.getElementById("loginPassword").value;
@@ -181,6 +207,24 @@
             } else {
                 message.style.color = "red";
                 message.textContent = "Invalid username or password.";
+            }
+        }
+
+        function register() {
+            const username = document.getElementById("registerUsername").value;
+            const email = document.getElementById("registerEmail").value;
+            const password = document.getElementById("registerPassword").value;
+            const message = document.getElementById("message");
+
+            if (username && email && password) {
+                message.style.color = "green";
+                message.textContent = "Registration successful! Redirecting to login...";
+                setTimeout(() => {
+                    showLogin();
+                }, 1000);
+            } else {
+                message.style.color = "red";
+                message.textContent = "Please fill in all fields.";
             }
         }
     </script>
