@@ -34,7 +34,6 @@ function getIngredients() {
         .filter(ingredient => ingredient); // Filter out empty ingredients
 }
 
-
 // Search recipes by ingredient (from local database)
 async function searchRecipes() {
     const ingredients = getIngredients();
@@ -177,11 +176,20 @@ async function askAI() {
         return;
     }
 
+    const OPENAI_API_KEY = "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"; // ⚠️ Exposing API key publicly (only for testing)
+
     try {
-        const response = await fetch(`${API_URL}/ask-ai`, {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt }),
+            headers: {
+                "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 150,
+            }),
         });
 
         if (!response.ok) {
