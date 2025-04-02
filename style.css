@@ -160,7 +160,7 @@ nav ul li a:hover {
     /* Hover effect with orange */
     color: white;
     transform: translateY(-2px);
-}
+} 
 
 .delete-all-button {
     background-color: #ff5733;
