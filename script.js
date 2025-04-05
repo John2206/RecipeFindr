@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000";
+const API_URL = "http://localhost:5000"; // Update to the correct backend URL once it is set up
 let currentPage = 1;  // To keep track of which page of results we are on
 
 // Function to add an ingredient to the list
@@ -168,7 +168,7 @@ async function deleteRecipe(id) {
     }
 }
 
-// Ask AI for a recipe suggestion
+// Ask AI for a recipe suggestion (moved to backend)
 async function askAI() {
     const prompt = document.getElementById("recipePrompt").value.trim();
     if (!prompt) {
@@ -176,28 +176,17 @@ async function askAI() {
         return;
     }
 
-    const OPENAI_API_KEY = "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"; // ⚠️ Exposing API key publicly (only for testing)
-
     try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch(`${API_URL}/ask-ai`, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${OPENAI_API_KEY}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                model: "gpt-4",
-                messages: [{ role: "user", content: prompt }],
-                max_tokens: 150,
-            }),
+            body: JSON.stringify({ prompt }),
         });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-
         const data = await response.json();
-        document.getElementById("aiResponse").innerText = data.choices ? data.choices[0].message.content : "No response.";
+        document.getElementById("aiResponse").innerText = data.response || "No response.";
     } catch (error) {
         document.getElementById("aiResponse").innerText = `Error getting AI response: ${error.message}`;
     }

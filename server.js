@@ -1,30 +1,19 @@
-require("dotenv").config();
-const express = require("express");
-const mysql = require("mysql2");
-const cors = require("cors");
-const bcrypt = require("bcrypt");
-const axios = require("axios");
+require('dotenv').config();
+const express = require('express');
+const mysql = require('mysql2');
+const bodyParser = require('body-parser');
+const tf = require('@tensorflow/tfjs-node');
+const axios = require('axios');
 
+// Initialize Express
 const app = express();
-const PORT = process.env.PORT || 5002;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Check environment variables
-if (!process.env.DB_PASSWORD || !OPENAI_API_KEY) {
-  console.error("❌ Environment variables are missing. Check your .env file.");
-  process.exit(1);
-}
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// MySQL Database Connection (Using Pool for Better Stability)
+// MySQL Database Connection
 const db = mysql.createPool({
-  host: "127.0.0.1",
-  user: "root",
+  host: '127.0.0.1',
+  user: 'root',
   password: process.env.DB_PASSWORD,
-  database: "recipedb",
+  database: 'recipedb',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -33,171 +22,90 @@ const db = mysql.createPool({
 // Check database connection
 db.getConnection((err, connection) => {
   if (err) {
-    console.error("❌ Database connection failed:", err.message);
+    console.error('❌ Database connection failed:', err.message);
     process.exit(1);
   }
-  console.log("✅ Connected to the database.");
+  console.log('✅ Connected to the database.');
   connection.release(); // Release the connection back to the pool
 });
 
-// --- RECIPE ENDPOINTS --- //
+// Middleware
+app.use(bodyParser.json());
 
-// Fetch all recipes
-app.get("/recipes", (req, res) => {
-  db.query("SELECT * FROM recipes", (err, results) => {
-    if (err) {
-      console.error("❌ Failed to fetch recipes:", err.message);
-      return res.status(500).json({ error: "Failed to fetch recipes" });
-    }
-    res.json(results);
-  });
-});
-
-// Search recipes by ingredient
-app.get("/recipes/search", (req, res) => {
-  const { ingredient } = req.query;
-  if (!ingredient) {
-    return res.status(400).json({ error: "No ingredient provided" });
-  }
-
-  db.query("SELECT * FROM recipes WHERE ingredients LIKE ?", [`%${ingredient}%`], (err, results) => {
-    if (err) {
-      console.error("❌ Failed to search recipes:", err.message);
-      return res.status(500).json({ error: "Failed to search recipes" });
-    }
-    res.json(results);
-  });
-});
-
-// Add a new recipe
-app.post("/recipes", (req, res) => {
-  const { name, ingredients, instructions } = req.body;
-  if (!name || !ingredients || !instructions) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  db.query(
-    "INSERT INTO recipes (name, ingredients, instructions) VALUES (?, ?, ?)",
-    [name, ingredients, instructions],
-    (err, result) => {
-      if (err) {
-        console.error("❌ Failed to add recipe:", err.message);
-        return res.status(500).json({ error: "Failed to add recipe" });
-      }
-      res.json({ message: "✅ Recipe added successfully!", recipeId: result.insertId });
-    }
-  );
-});
-
-// Delete a recipe
-app.delete("/recipes/:id", (req, res) => {
-  const { id } = req.params;
-  db.query("DELETE FROM recipes WHERE id = ?", [id], (err) => {
-    if (err) {
-      console.error("❌ Failed to delete recipe:", err.message);
-      return res.status(500).json({ error: "Failed to delete recipe" });
-    }
-    res.json({ message: "✅ Recipe deleted successfully!" });
-  });
-});
-
-// --- AI-POWERED RECIPE SUGGESTIONS --- //
-app.post("/ask-ai", async (req, res) => {
+// Load the ML model
+let model;
+async function loadModel() {
   try {
-    const { prompt } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
-    }
+    model = await tf.loadLayersModel('file:///home/gjergj/recipeFindr/server/model.json');
+    console.log('✅ Model loaded!');
+  } catch (error) {
+    console.error('❌ Failed to load model:', error);
+  }
+}
 
+loadModel(); // Load model when the server starts
+
+// POST route to handle AI requests (e.g., OpenAI API)
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+app.post('/ask-ai', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt is required' });
+  }
+
+  try {
     const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
+      'https://api.openai.com/v1/chat/completions',
       {
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
         max_tokens: 150,
       },
       {
         headers: {
           Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
-    res.json({ response: response.data.choices[0].message.content });
+    const aiResponse = response.data.choices[0].message.content;
+    res.json({ response: aiResponse });
   } catch (error) {
-    console.error("❌ AI Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Something went wrong with AI!" });
+    console.error('Error with OpenAI API:', error);
+    res.status(500).json({ error: 'Failed to fetch AI response' });
   }
 });
 
-// --- USER AUTHENTICATION --- //
-
-// Register User
-app.post("/signup", async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
+// POST route for machine learning predictions
+app.post('/predict', async (req, res) => {
+  if (!model) {
+    return res.status(500).json({ error: 'Model not loaded yet' });
   }
 
-  db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
-    if (err) {
-      console.error("❌ Database error:", err.message);
-      return res.status(500).json({ message: "Database error" });
-    }
-    if (results.length > 0) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+  const { inputData } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    db.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword], (err) => {
-      if (err) {
-        console.error("❌ Error inserting user:", err.message);
-        return res.status(500).json({ message: "Error inserting user" });
-      }
-      res.json({ message: "✅ User registered successfully!" });
-    });
-  });
-});
-
-// Login User
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
+  if (!inputData || !Array.isArray(inputData)) {
+    return res.status(400).json({ error: 'Input data is required and must be an array' });
   }
 
-  db.query("SELECT * FROM users WHERE username = ?", [username], (err, results) => {
-    if (err) {
-      console.error("❌ Database error:", err.message);
-      return res.status(500).json({ message: "Database error" });
-    }
-    if (results.length === 0) {
-      return res.status(400).json({ message: "User not found" });
-    }
+  try {
+    // Convert input data to tensor
+    const inputTensor = tf.tensor(inputData); // Ensure proper shape based on your model
+    const prediction = model.predict(inputTensor);
 
-    bcrypt.compare(password, results[0].password, (err, match) => {
-      if (err) {
-        console.error("❌ Password comparison error:", err.message);
-        return res.status(500).json({ message: "Error comparing passwords" });
-      }
-      if (!match) {
-        return res.status(401).json({ message: "Incorrect password" });
-      }
-      res.json({ message: "✅ Login successful!" });
-    });
-  });
+    // Get the result as a sync array
+    const result = prediction.dataSync();
+    console.log('Prediction result:', result);
+
+    return res.json({ prediction: result });
+  } catch (error) {
+    console.error('❌ Error during prediction:', error);
+    return res.status(500).json({ error: 'Failed to make prediction' });
+  }
 });
 
-// --- GLOBAL ERROR HANDLERS --- //
-process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught Exception:", err);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("❌ Unhandled Rejection:", reason);
-});
-
-// --- START SERVER --- //
+// Start the server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server is running on http://localhost:${PORT}`);
 });

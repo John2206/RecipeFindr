@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="style.css">
     <title>RecipeFindr</title>
 </head>
-
 <body>
     <header>
         <nav>
@@ -18,132 +17,154 @@
             </ul>
         </nav>
     </header>
-    <body>
-        <header>
-            <h1>Recipe Ingredients</h1>
-        </header>
-        <main>
-            <div class="search-container">
-                <input type="text" id="ingredientInput" placeholder="Enter an ingredient">
-                <button onclick="addIngredient()">Add Ingredient</button>
-                <button class="delete-all-button" onclick="deleteAllIngredients()">Delete All Ingredients</button>
-                <button onclick="searchRecipes()">Get Recipes</button>
-                <button onclick="findOtherRecipes()">Find Other Recipes Using These Ingredients</button>
-            </div>
-            <div class="ingredient-list">
-                <ul id="ingredientList"></ul>
-            </div>
 
-            <div id="recipeResults">
-                <h2>Recipes Based on Your Ingredients:</h2>
-                <ul id="recipesList"></ul>
-            </div>
-        </main>
-        <footer>
-            <p>&copy; 2025 RecipeFindr</p>
-        </footer>
+    <header>
+        <h1>Recipe Ingredients</h1>
+    </header>
 
-        <script>
-            // Removed old API key as OpenAI API is being used now
+    <main>
+        <div class="search-container">
+            <input type="text" id="ingredientInput" placeholder="Enter an ingredient">
+            <button onclick="addIngredient()">Add Ingredient</button>
+            <button class="delete-all-button" onclick="deleteAllIngredients()">Delete All Ingredients</button>
+            <button onclick="searchRecipes()">Get Recipes</button>
+            <button onclick="findOtherRecipes()">Find Other Recipes Using These Ingredients</button>
+        </div>
+        
+        <div class="ingredient-list">
+            <ul id="ingredientList"></ul>
+        </div>
 
-            // Function to add an ingredient to the list
-            function addIngredient() {
-                const input = document.getElementById('ingredientInput');
-                const list = document.getElementById('ingredientList');
-                const ingredient = input.value.trim();
-                if (ingredient) {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = ingredient;
+        <div id="recipeResults">
+            <h2>Recipes Based on Your Ingredients:</h2>
+            <ul id="recipesList"></ul>
+        </div>
 
-                    // Create delete button
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.onclick = function () {
-                        deleteIngredient(listItem);
-                    };
+        <!-- Button to open Camera page -->
+        <div class="camera-button-container">
+            <a href="camera.html">
+                <button class="camera-btn">Open Camera</button>
+            </a>
+        </div>
+    </main>
 
-                    listItem.appendChild(deleteButton);
-                    list.appendChild(listItem);
-                    input.value = ''; // Clear input after adding the ingredient
-                }
+    <footer>
+        <p>&copy; 2025 RecipeFindr</p>
+    </footer>
+
+    <script>
+        // Same functions for ingredients as before...
+    </script>
+</body>
+
+    <script>
+        let videoStream;
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('canvas');
+        const previewImage = document.getElementById('preview');
+
+        // Start the camera stream
+        async function startCamera() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = videoStream;
+            } catch (error) {
+                console.error('Error accessing the camera:', error);
+            }
+        }
+
+        // Capture the image from the video stream
+        function takePicture() {
+            const context = canvasElement.getContext('2d');
+            // Set the canvas size to match the video feed
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+
+            // Draw the current frame from the video on the canvas
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+            // Get the image data as a data URL
+            const imageData = canvasElement.toDataURL('image/png');
+            previewImage.src = imageData;
+            previewImage.style.display = 'block';
+        }
+
+        // Function to add an ingredient to the list
+        function addIngredient() {
+            const input = document.getElementById('ingredientInput');
+            const list = document.getElementById('ingredientList');
+            const ingredient = input.value.trim();
+            if (ingredient) {
+                const listItem = document.createElement('li');
+                listItem.textContent = ingredient;
+
+                // Create delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = function () {
+                    deleteIngredient(listItem);
+                };
+
+                listItem.appendChild(deleteButton);
+                list.appendChild(listItem);
+                input.value = ''; // Clear input after adding the ingredient
+            }
+        }
+
+        // Function to delete an ingredient
+        function deleteIngredient(listItem) {
+            listItem.remove();
+        }
+
+        // Function to delete all ingredients
+        function deleteAllIngredients() {
+            const list = document.getElementById('ingredientList');
+            list.innerHTML = '';
+        }
+
+        // Function to get ingredients from the list
+        function getIngredients() {
+            const listItems = document.querySelectorAll('#ingredientList li');
+            return Array.from(listItems).map(item => item.textContent.replace('Delete', '').trim());
+        }
+
+        // Function to search for recipes based on ingredients
+        function searchRecipes() {
+            const ingredients = getIngredients();
+            if (ingredients.length === 0) {
+                displayNoIngredientsMessage();
+                return;
             }
 
-            // Function to delete an ingredient
-            function deleteIngredient(listItem) {
-                listItem.remove();
+            const query = ingredients.join(',');
+            // Replace the following with OpenAI API request logic
+            console.log("Searching recipes with ingredients:", query);
+            // Use the OpenAI API to fetch recipes if you want
+        }
+
+        // Function to find other recipes using the same ingredients
+        function findOtherRecipes() {
+            searchRecipes();
+        }
+
+        // Function to display a message when no ingredients are provided
+        function displayNoIngredientsMessage() {
+            document.getElementById('recipesList').innerHTML = '<li>No ingredients provided yet.</li>';
+        }
+
+        // Function to display an error message
+        function displayErrorMessage(error) {
+            console.error('Error fetching recipes:', error);
+            document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
+        }
+
+        // Add event listener to the input field for Enter key press
+        document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent the default Enter key behavior
+                addIngredient(); // Add the ingredient
             }
-
-            // Function to delete all ingredients
-            function deleteAllIngredients() {
-                const list = document.getElementById('ingredientList');
-                list.innerHTML = '';
-            }
-
-            // Function to get ingredients from the list
-            function getIngredients() {
-                const listItems = document.querySelectorAll('#ingredientList li');
-                return Array.from(listItems).map(item => item.textContent.replace('Delete', '').trim());
-            }
-
-            // Function to search for recipes based on ingredients
-            function searchRecipes() {
-                const ingredients = getIngredients();
-                if (ingredients.length === 0) {
-                    displayNoIngredientsMessage();
-                    return;
-                }
-
-                const query = ingredients.join(',');
-                // Replace the following with OpenAI API request logic
-                console.log("Searching recipes with ingredients:", query);
-                // Use the OpenAI API to fetch recipes if you want
-            }
-
-            // Function to find other recipes using the same ingredients
-            function findOtherRecipes() {
-                searchRecipes();
-            }
-
-            // Function to display recipes based on the response data
-            function displayRecipes(data) {
-                const recipesList = document.getElementById('recipesList');
-                recipesList.innerHTML = '';
-
-                if (!data.results || data.results.length === 0) {
-                    recipesList.innerHTML = '<li>No recipes found with the given ingredients.</li>';
-                    return;
-                }
-
-                data.results.forEach(recipe => {
-                    const recipeItem = document.createElement('li');
-                    recipeItem.innerHTML = `
-                        <strong>${recipe.name}</strong><br>
-                        ${recipe.thumbnail_url ? `<img src="${recipe.thumbnail_url}" alt="${recipe.name}" width="100"><br>` : ''}
-                        ${recipe.original_video_url ? `<a href="${recipe.original_video_url}" target="_blank">Watch Video</a><br>` : ''}
-                        <a href="https://tasty.co/recipe/${recipe.slug}" target="_blank">View Recipe</a>
-                    `;
-                    recipesList.appendChild(recipeItem);
-                });
-            }
-
-            // Function to display a message when no ingredients are provided
-            function displayNoIngredientsMessage() {
-                document.getElementById('recipesList').innerHTML = '<li>No ingredients provided yet.</li>';
-            }
-
-            // Function to display an error message
-            function displayErrorMessage(error) {
-                console.error('Error fetching recipes:', error);
-                document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-            }
-
-            // Add event listener to the input field for Enter key press
-            document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault(); // Prevent the default Enter key behavior
-                    addIngredient(); // Add the ingredient
-                }
-            });
-        </script>
-    </body>
+        });
+    </script>
+</body>
 </html>

@@ -320,3 +320,158 @@ h1 {
     font-size: 1.2rem;
     margin-top: 10px;
 }
+.camera-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem auto;
+  }
+  
+  .open-camera-btn,
+  .capture-btn,
+  .remove-btn {
+    font-size: 1.5rem;
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .open-camera-btn,
+.capture-btn {
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.open-camera-btn:hover,
+.capture-btn:hover {
+  background-color: #444;
+  transform: scale(1.05);
+}
+
+.open-camera-btn svg,
+.capture-btn svg {
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+}
+
+  
+  .remove-btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: none;
+  }
+  
+  #preview {
+    display: none;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  
+  .camera-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 99;
+  }
+  
+  .camera-feed {
+    position: relative;
+    width: 90%;
+    max-width: 720px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  
+  video {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+  }
+  .capture-btn {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #222;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    z-index: 11;
+  }
+  
+  .capture-btn:hover {
+    background-color: #333;
+    transform: translateX(-50%) scale(1.05);
+  }
+  
+  .capture-btn svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.85);
+    border: none;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+  
+  .flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+  
+  .flash.active {
+    animation: flashEffect 0.3s ease-out;
+  }
+  
+  @keyframes flashEffect {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+  

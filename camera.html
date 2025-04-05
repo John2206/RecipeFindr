@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Take a Picture</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="recipes.html">Back to Recipes</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <h1 class="page-title">Take a Picture</h1>
+
+  <main class="camera-page">
+    <button class="open-camera-btn" onclick="startCamera()">📷</button>
+    <img id="preview" alt="Photo Preview" />
+    <button id="removeBtn" class="remove-btn" onclick="removePhoto()">Remove Photo</button>
+  </main>
+
+  <div class="camera-overlay" id="cameraOverlay">
+    <div class="camera-feed">
+      <button class="close-btn" onclick="stopCamera()">✕</button>
+      <video id="video" autoplay></video>
+      <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+    <button class="capture-btn" onclick="takePicture()" aria-label="Take Picture">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" width="28" height="28" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l2-3h8l2 3h3a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+      </button>
+  </div>
+
+  <div class="flash" id="flashEffect"></div>
+
+  <footer>
+    <p>&copy; 2025 RecipeFindr</p>
+  </footer>
+
+  <script>
+    let videoStream;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const preview = document.getElementById('preview');
+    const overlay = document.getElementById('cameraOverlay');
+    const flash = document.getElementById('flashEffect');
+    const removeBtn = document.getElementById('removeBtn');
+
+    async function startCamera() {
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = videoStream;
+        overlay.style.display = 'flex';
+      } catch (err) {
+        console.error('Error accessing camera', err);
+      }
+    }
+
+    function stopCamera() {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+      }
+      overlay.style.display = 'none';
+    }
+
+    function takePicture() {
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      preview.src = canvas.toDataURL('image/png');
+      preview.style.display = 'block';
+      removeBtn.style.display = 'inline-block';
+      flash.classList.add('active');
+      setTimeout(() => flash.classList.remove('active'), 300);
+      stopCamera();
+    }
+
+    function removePhoto() {
+      preview.src = '';
+      preview.style.display = 'none';
+      removeBtn.style.display = 'none';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') stopCamera();
+    });
+  </script>
+</body>
+</html>
