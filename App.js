@@ -16,4 +16,9 @@ app.use(bodyParser.json());
 app.use('/recipes', recipesRouter);
 app.use('/auth', authRouter);
 
+app.get('/health', (req, res) => {
+    console.log('Health check requested');
+    res.json({ status: 'Server is alive 🚀' });
+  });
+  
 module.exports = app;

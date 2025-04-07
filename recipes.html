@@ -3,168 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>RecipeFindr</title>
+    <title>Recipe Finder</title>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="register.html">Register</a></li>
-            </ul>
-        </nav>
-    </header>
+    <h1>Recipe Finder</h1>
 
-    <header>
-        <h1>Recipe Ingredients</h1>
-    </header>
+    <!-- Input for asking AI -->
+    <input type="text" id="recipePrompt" placeholder="Ask AI for a recipe..." />
+    <button onclick="askAI()">Ask AI</button>
 
-    <main>
-        <div class="search-container">
-            <input type="text" id="ingredientInput" placeholder="Enter an ingredient">
-            <button onclick="addIngredient()">Add Ingredient</button>
-            <button class="delete-all-button" onclick="deleteAllIngredients()">Delete All Ingredients</button>
-            <button onclick="searchRecipes()">Get Recipes</button>
-            <button onclick="findOtherRecipes()">Find Other Recipes Using These Ingredients</button>
-        </div>
-        
-        <div class="ingredient-list">
-            <ul id="ingredientList"></ul>
-        </div>
+    <!-- Display AI Response -->
+    <div id="aiResponse">AI Response will be displayed here...</div>
 
-        <div id="recipeResults">
-            <h2>Recipes Based on Your Ingredients:</h2>
-            <ul id="recipesList"></ul>
-        </div>
+    <!-- Display Recipe Suggestions -->
+    <ul id="recipeSuggestions"></ul> <!-- Recipes will be listed here -->
 
-        <!-- Button to open Camera page -->
-        <div class="camera-button-container">
-            <a href="camera.html">
-                <button class="camera-btn">Open Camera</button>
-            </a>
-        </div>
-    </main>
+    <!-- Ingredient List -->
+    <h2>Ingredients</h2>
+    <input type="text" id="ingredientInput" placeholder="Add an ingredient" />
+    <button onclick="addIngredient()">Add Ingredient</button>
+    <ul id="ingredientList"></ul>
 
-    <footer>
-        <p>&copy; 2025 RecipeFindr</p>
-    </footer>
+    <!-- Recipe Search -->
+    <h2>Search Recipes</h2>
+    <button onclick="searchRecipes()">Search Recipes</button>
 
     <script>
-        // Same functions for ingredients as before...
-    </script>
-</body>
+        const API_URL = "http://localhost:5003"; // Update this to match your backend's URL
 
-    <script>
-        let videoStream;
-        const videoElement = document.getElementById('video');
-        const canvasElement = document.getElementById('canvas');
-        const previewImage = document.getElementById('preview');
-
-        // Start the camera stream
-        async function startCamera() {
-            try {
-                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoElement.srcObject = videoStream;
-            } catch (error) {
-                console.error('Error accessing the camera:', error);
-            }
-        }
-
-        // Capture the image from the video stream
-        function takePicture() {
-            const context = canvasElement.getContext('2d');
-            // Set the canvas size to match the video feed
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-
-            // Draw the current frame from the video on the canvas
-            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
-            // Get the image data as a data URL
-            const imageData = canvasElement.toDataURL('image/png');
-            previewImage.src = imageData;
-            previewImage.style.display = 'block';
-        }
+        let currentPage = 1;
 
         // Function to add an ingredient to the list
         function addIngredient() {
-            const input = document.getElementById('ingredientInput');
-            const list = document.getElementById('ingredientList');
+            const input = document.getElementById("ingredientInput");
+            const list = document.getElementById("ingredientList");
             const ingredient = input.value.trim();
+
             if (ingredient) {
-                const listItem = document.createElement('li');
+                const listItem = document.createElement("li");
                 listItem.textContent = ingredient;
 
                 // Create delete button
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = function () {
-                    deleteIngredient(listItem);
-                };
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "❌";
+                deleteButton.onclick = () => listItem.remove();
 
                 listItem.appendChild(deleteButton);
                 list.appendChild(listItem);
-                input.value = ''; // Clear input after adding the ingredient
+                input.value = "";
             }
         }
 
-        // Function to delete an ingredient
-        function deleteIngredient(listItem) {
-            listItem.remove();
-        }
-
-        // Function to delete all ingredients
-        function deleteAllIngredients() {
-            const list = document.getElementById('ingredientList');
-            list.innerHTML = '';
-        }
-
-        // Function to get ingredients from the list
+        // Function to get all ingredients from the list
         function getIngredients() {
-            const listItems = document.querySelectorAll('#ingredientList li');
-            return Array.from(listItems).map(item => item.textContent.replace('Delete', '').trim());
+            return Array.from(document.querySelectorAll("#ingredientList li"))
+                .map(item => item.textContent.replace("❌", "").trim())
+                .filter(ingredient => ingredient); // Filter out empty ingredients
         }
 
-        // Function to search for recipes based on ingredients
-        function searchRecipes() {
+        // Function to search recipes by ingredient
+        async function searchRecipes() {
             const ingredients = getIngredients();
+            console.log('Ingredients:', ingredients); // Debugging
             if (ingredients.length === 0) {
-                displayNoIngredientsMessage();
+                alert("Please add some ingredients first!");
                 return;
             }
 
-            const query = ingredients.join(',');
-            // Replace the following with OpenAI API request logic
-            console.log("Searching recipes with ingredients:", query);
-            // Use the OpenAI API to fetch recipes if you want
-        }
+            try {
+                const response = await fetch(`${API_URL}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`);
+                const recipes = await response.json();
+                console.log('Recipes:', recipes);  // Debugging
 
-        // Function to find other recipes using the same ingredients
-        function findOtherRecipes() {
-            searchRecipes();
-        }
+                const resultsList = document.getElementById("recipeSuggestions");
+                resultsList.innerHTML = ""; // Clear previous results
 
-        // Function to display a message when no ingredients are provided
-        function displayNoIngredientsMessage() {
-            document.getElementById('recipesList').innerHTML = '<li>No ingredients provided yet.</li>';
-        }
+                if (recipes.length === 0) {
+                    resultsList.innerHTML = "<li>No recipes found with these ingredients.</li>";
+                    return;
+                }
 
-        // Function to display an error message
-        function displayErrorMessage(error) {
-            console.error('Error fetching recipes:', error);
-            document.getElementById('recipesList').innerHTML = '<li>Failed to load recipes. Please try again later.</li>';
-        }
+                recipes.forEach(recipe => {
+                    const recipeItem = document.createElement("li");
+                    recipeItem.innerHTML = `
+                        <strong>${recipe.name}</strong><br>
+                        Ingredients: ${recipe.ingredients}<br>
+                        Instructions: ${recipe.instructions}<br>
+                        <hr>
+                    `;
+                    resultsList.appendChild(recipeItem);
+                });
 
-        // Add event listener to the input field for Enter key press
-        document.getElementById('ingredientInput').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent the default Enter key behavior
-                addIngredient(); // Add the ingredient
+                // Add button to load more recipes
+                const loadMoreButton = document.createElement("button");
+                loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
+                loadMoreButton.onclick = loadMoreRecipes;
+                resultsList.appendChild(loadMoreButton);
+
+            } catch (error) {
+                console.error("Error fetching recipes:", error);
             }
-        });
+        }
+
+        // Function to load more recipes
+        async function loadMoreRecipes() {
+            currentPage++; // Increase the page number
+            searchRecipes(); // Fetch the next set of recipes
+        }
+
+        // Function to ask AI for a recipe suggestion
+        async function askAI() {
+            const prompt = document.getElementById("recipePrompt").value.trim();
+            const responseBox = document.getElementById("aiResponse");
+
+            if (!prompt) {
+                alert("Enter a question for AI!");
+                return;
+            }
+
+            responseBox.innerText = "Thinking... 🤔";
+
+            try {
+                const response = await fetch(`${API_URL}/ask-ai`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt }),
+                });
+
+                const data = await response.json();
+                if (data.response) {
+                    responseBox.innerText = data.response;  // Display AI response here
+                    displayRecipeSuggestions(data.response); // Function to display recipes
+                } else {
+                    responseBox.innerText = "No response.";
+                }
+            } catch (error) {
+                responseBox.innerText = `Error getting AI response: ${error.message}`;
+            }
+        }
+
+        // Function to display AI recipe suggestions
+        function displayRecipeSuggestions(aiResponse) {
+            const recipeSuggestionsContainer = document.getElementById("recipeSuggestions");
+            
+            // Clear any previous suggestions
+            recipeSuggestionsContainer.innerHTML = "";
+
+            // Assuming AI response contains a list of recipe suggestions or formatted text
+            const recipes = aiResponse.split("\n");  // Adjust depending on how the AI response is formatted
+
+            recipes.forEach(recipe => {
+                const recipeItem = document.createElement("li");
+                recipeItem.textContent = recipe;
+                recipeSuggestionsContainer.appendChild(recipeItem);
+            });
+        }
     </script>
 </body>
 </html>

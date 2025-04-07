@@ -1,4 +1,9 @@
-const API_URL = "http://localhost:5000"; // Update to the correct backend URL once it is set up
+const API_URL = "http://localhost:5003";  // Update this to match your backend's URL
+
+axios.get(`${API_URL}/health`)
+  .then(response => console.log(response.data))
+  .catch(error => console.error('Error:', error));
+
 let currentPage = 1;  // To keep track of which page of results we are on
 
 // Function to add an ingredient to the list
@@ -37,6 +42,7 @@ function getIngredients() {
 // Search recipes by ingredient (from local database)
 async function searchRecipes() {
     const ingredients = getIngredients();
+    console.log('Ingredients:', ingredients); // Debugging
     if (ingredients.length === 0) {
         alert("Please add some ingredients first!");
         return;
@@ -45,6 +51,7 @@ async function searchRecipes() {
     try {
         const response = await fetch(`${API_URL}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`);
         const recipes = await response.json();
+        console.log('Recipes:', recipes);  // Debugging
 
         const resultsList = document.getElementById("searchResults");
         resultsList.innerHTML = ""; // Clear previous results
@@ -171,26 +178,36 @@ async function deleteRecipe(id) {
 // Ask AI for a recipe suggestion (moved to backend)
 async function askAI() {
     const prompt = document.getElementById("recipePrompt").value.trim();
+    const responseBox = document.getElementById("aiResponse");
+
     if (!prompt) {
         alert("Enter a question for AI!");
         return;
     }
 
+    responseBox.innerText = "Thinking... 🤔";
+
     try {
         const response = await fetch(`${API_URL}/ask-ai`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ prompt }),
         });
 
         const data = await response.json();
-        document.getElementById("aiResponse").innerText = data.response || "No response.";
+        responseBox.innerText = data.response || "No response.";
     } catch (error) {
-        document.getElementById("aiResponse").innerText = `Error getting AI response: ${error.message}`;
+        responseBox.innerText = `Error getting AI response: ${error.message}`;
     }
 }
 
 // Load recipes on page load
 document.addEventListener("DOMContentLoaded", fetchRecipes);
+
+// Automatically trigger adding ingredient when Enter is pressed
+document.getElementById("ingredientInput").addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        addIngredient();
+    }
+});
