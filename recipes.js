@@ -3,9 +3,13 @@ const express = require('express');
 const db = require('../config/db');
 const router = express.Router();
 
-// Fetch all recipes
+// Fetch all recipes with pagination
 router.get('/', (req, res) => {
-  db.query('SELECT * FROM recipes', (err, results) => {
+  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page) || 1;
+  const offset = (page - 1) * limit;
+
+  db.query('SELECT * FROM recipes LIMIT ? OFFSET ?', [limit, offset], (err, results) => {
     if (err) {
       console.error('❌ Failed to fetch recipes:', err.message);
       return res.status(500).json({ error: 'Failed to fetch recipes' });
@@ -14,14 +18,26 @@ router.get('/', (req, res) => {
   });
 });
 
-// Search recipes by ingredient
+// Search recipes by ingredient with pagination
 router.get('/search', (req, res) => {
   const { ingredient } = req.query;
   if (!ingredient) {
     return res.status(400).json({ error: 'No ingredient provided' });
   }
 
-  db.query('SELECT * FROM recipes WHERE ingredients LIKE ?', [`%${ingredient}%`], (err, results) => {
+  const ingredients = ingredient.split(',');
+  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page) || 1;
+  const offset = (page - 1) * limit;
+
+  // Build dynamic query for multiple ingredients
+  let query = 'SELECT * FROM recipes WHERE ';
+  const conditions = ingredients.map(() => 'ingredients LIKE ?').join(' OR ');
+  const params = ingredients.map(ing => `%${ing.trim()}%`);
+  query += conditions + ' LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+
+  db.query(query, params, (err, results) => {
     if (err) {
       console.error('❌ Failed to search recipes:', err.message);
       return res.status(500).json({ error: 'Failed to search recipes' });

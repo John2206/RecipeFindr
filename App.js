@@ -19,6 +19,12 @@ app.use('/auth', authRouter);
 app.get('/health', (req, res) => {
     console.log('Health check requested');
     res.json({ status: 'Server is alive 🚀' });
-  });
-  
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('❌ Uncaught error:', err);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
+
 module.exports = app;
