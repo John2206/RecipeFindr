@@ -1,3 +1,0 @@
-● mysql.service - MySQL Community Server
-     Loaded: loaded (/lib/systemd/system/mysql.service; disabled; vendor preset: enabled)
-     Active: inactive (dead)

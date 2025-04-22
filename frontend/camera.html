@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Camera - RecipeFindr</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="recipes.html">Recipes</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="login.html">Login</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="camera-page">
+      <h1 class="text-center">Scan Ingredients</h1>
+      <p class="camera-description text-center">Take a picture of your ingredients to find matching recipes.</p>
+      
+      <div class="camera-controls-center">
+        <button id="openCameraBtn" class="camera-btn">
+          <span class="camera-icon">📷</span>
+          Open Camera
+        </button>
+      </div>
+
+      <div class="preview-container" id="previewContainer" style="display: none;">
+        <h2 class="text-center">Captured Image</h2>
+        <div class="preview-wrapper">
+          <img id="preview" alt="Captured image">
+          <div class="preview-actions">
+            <button id="scanPhotoBtn" class="scan-btn">
+              <span class="scan-icon">🔍</span>
+              AI Scan
+            </button>
+            <button id="removePhotoBtn" class="remove-btn">Remove Photo</button>
+          </div>
+          <div id="scanResults" class="scan-results" style="display: none;">
+            <h3>Ingredients Detected:</h3>
+            <ul id="ingredientsList"></ul>
+            <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+              <div class="spinner"></div>
+              <p>Analyzing image...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="camera-overlay" id="cameraOverlay" style="display: none;">
+    <div class="camera-container">
+      <button id="closeCameraBtn" class="close-btn">×</button>
+      
+      <div class="camera-status">
+        <div class="camera-mode">PHOTO</div>
+        <div class="camera-flash"><i class="fas fa-bolt"></i></div>
+      </div>
+      
+      <div class="video-container" id="videoContainer">
+        <video id="video" autoplay playsinline></video>
+        <div class="camera-frame"></div>
+        <div class="camera-grid"><div></div></div>
+        <canvas id="canvas" style="display: none;"></canvas>
+        <button id="captureBtn" class="capture-btn"></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="flashEffect" class="flash"></div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>RecipeFindr</h3>
+        <p>Your ultimate recipe discovery platform</p>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="recipes.html">Recipes</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 RecipeFindr. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const preview = document.getElementById('preview');
+    const openCameraBtn = document.getElementById('openCameraBtn');
+    const closeCameraBtn = document.getElementById('closeCameraBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+    const scanPhotoBtn = document.getElementById('scanPhotoBtn');
+    const cameraOverlay = document.getElementById('cameraOverlay');
+    const videoContainer = document.getElementById('videoContainer');
+    const previewContainer = document.getElementById('previewContainer');
+    const flashEffect = document.getElementById('flashEffect');
+    const scanResults = document.getElementById('scanResults');
+    const ingredientsList = document.getElementById('ingredientsList');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    let stream = null;
+
+    function closeCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      cameraOverlay.style.display = 'none';
+      videoContainer.classList.remove('camera-active');
+    }
+
+    // Open camera and make the capture button visible
+    openCameraBtn.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        cameraOverlay.style.display = 'flex';
+        
+        // Add camera-active class to show the capture button
+        videoContainer.classList.add('camera-active');
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        alert('Could not access camera. Please make sure you have granted camera permissions.');
+      }
+    });
+
+    closeCameraBtn.addEventListener('click', closeCamera);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && cameraOverlay.style.display === 'flex') {
+        closeCamera();
+      }
+    });
+
+    captureBtn.addEventListener('click', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      
+      // Show flash effect
+      flashEffect.classList.add('active');
+      setTimeout(() => flashEffect.classList.remove('active'), 300);
+      
+      // Show preview
+      preview.src = canvas.toDataURL('image/jpeg');
+      preview.style.display = 'block';
+      previewContainer.style.display = 'block';
+      
+      // Close camera
+      closeCamera();
+    });
+
+    removePhotoBtn.addEventListener('click', () => {
+      preview.src = '';
+      previewContainer.style.display = 'none';
+      scanResults.style.display = 'none';
+    });
+
+    scanPhotoBtn.addEventListener('click', async () => {
+      scanResults.style.display = 'block';
+      loadingSpinner.style.display = 'flex';
+      ingredientsList.innerHTML = '';
+
+      try {
+        // Get the image data from the canvas
+        const imageData = canvas.toDataURL('image/jpeg').split(',')[1]; // Remove data:image/jpeg;base64, prefix
+        
+        // Send the image to the backend API
+        const response = await fetch('/api/recognize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            image: imageData 
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        // Parse the API response
+        const result = await response.json();
+        
+        // Hide loading spinner
+        loadingSpinner.style.display = 'none';
+        
+        // Display the detected ingredients
+        if (result.ingredients && result.ingredients.length > 0) {
+          result.ingredients.forEach(ingredient => {
+            const li = document.createElement('li');
+            li.textContent = ingredient;
+            ingredientsList.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.textContent = 'No ingredients detected. Try taking a clearer photo.';
+          li.classList.add('no-results');
+          ingredientsList.appendChild(li);
+        }
+      } catch (err) {
+        console.error('Error during AI scan:', err);
+        loadingSpinner.style.display = 'none';
+        
+        const li = document.createElement('li');
+        li.textContent = 'Failed to analyze image. Please try again.';
+        li.classList.add('error');
+        ingredientsList.appendChild(li);
+      }
+    });
+  </script>
+
+  <style>
+    /* Center text */
+    .text-center {
+      text-align: center;
+    }
+    
+    /* Center camera controls */
+    .camera-controls-center {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    
+    /* Flash effect */
+    .flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: opacity 0.1s ease-out;
+    }
+    
+    .flash.active {
+      opacity: 0.8;
+    }
+    
+    /* Camera page */
+    .camera-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+    
+    /* Camera description */
+    .camera-description {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 30px;
+      color: #bbb;
+      font-size: 1.1rem;
+    }
+    
+    /* Camera overlay */
+    .camera-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    /* Preview container */
+    .preview-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #1f1f1f;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .preview-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #e0e0e0;
+    }
+    
+    .preview-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    #preview {
+      display: block;
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Preview actions */
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    /* Scan button */
+    .scan-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .scan-btn:hover {
+      background: #388e3c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(56, 142, 60, 0.4);
+    }
+    
+    /* Scan results */
+    .scan-results {
+      margin-top: 20px;
+      text-align: center;
+      color: #e0e0e0;
+    }
+    
+    .scan-results h3 {
+      margin-bottom: 10px;
+    }
+    
+    .scan-results ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .scan-results ul li {
+      margin: 5px 0;
+    }
+    
+    /* Error and no-results messages */
+    .scan-results .error,
+    .scan-results .no-results {
+      color: #ff9966;
+      font-style: italic;
+      padding: 10px;
+    }
+    
+    /* Ingredient list styling */
+    #ingredientsList {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
+    }
+    
+    #ingredientsList li {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    #ingredientsList li:last-child {
+      border-bottom: none;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #4caf50;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    
+    /* Close button */
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 10;
+    }
+    
+    .close-btn:hover {
+      background: rgba(255, 87, 51, 0.7);
+    }
+    
+    /* Remove photo button */
+    .remove-btn {
+      background: #ff5733;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .remove-btn:hover {
+      background: #e64a19;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(230, 74, 25, 0.4);
+    }
+  </style>
+</body>
+</html>
+``` 

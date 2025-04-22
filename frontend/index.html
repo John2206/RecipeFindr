@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecipeFindr - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="menu-icon" onclick="toggleMenu()">&#x22EE;</span>
+    <div id="dimmed" class="dimmed"></div>
+    <div id="overlay" class="overlay">
+        <a href="index.html">Home</a>
+        <a href="recipes.html">Recipes</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="login.html">Login/Register</a>
+    </div>
+
+    <main>
+        <section class="hero">
+            <h1>Welcome to RecipeFindr</h1>
+            <p>Discover and create your favorite recipes with the ingredients you already have!</p>
+            <a href="recipes.html" class="btn cta-btn">Browse Recipes</a>
+        </section>
+
+        <section class="features">
+            <div class="features-container">
+                <h2>What We Offer</h2>
+                <div class="feature-items">
+                    <div class="feature">
+                        <h3>Personalized Recipes</h3>
+                        <p>Find recipes based on ingredients you already have in your kitchen.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Meal Planning</h3>
+                        <p>Create meal plans for the week with our easy-to-use tools.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Recipe Sharing</h3>
+                        <p>Share your own recipes with the community.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>RecipeFindr</h3>
+                <p>Your ultimate recipe discovery platform</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="recipes.html">Recipes</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link">Facebook</a>
+                    <a href="#" class="social-link">Twitter</a>
+                    <a href="#" class="social-link">Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 RecipeFindr. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const overlay = document.getElementById("overlay");
+            const dimmed = document.getElementById("dimmed");
+
+            if (overlay.classList.contains("show")) {
+                closeMenu();
+            } else {
+                overlay.classList.add("show");
+                dimmed.classList.add("show");
+            }
+        }
+
+        function closeMenu() {
+            const overlay = document.getElementById("overlay");
+            const dimmed = document.getElementById("dimmed");
+
+            overlay.classList.remove("show");
+            dimmed.classList.remove("show");
+        }
+
+        document.addEventListener("click", function(event) {
+            const overlay = document.getElementById("overlay");
+            const menuIcon = document.querySelector(".menu-icon");
+            const dimmed = document.getElementById("dimmed");
+
+            if (overlay.classList.contains("show") &&
+                !overlay.contains(event.target) &&
+                !menuIcon.contains(event.target)) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                closeMenu();
+            }
+        });
+    </script>
+
+</body>
+</html>
