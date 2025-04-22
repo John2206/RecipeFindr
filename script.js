@@ -1,9 +1,4 @@
-const API_URL = "http://localhost:5002";  // Update this to match your backend's URL
-
-axios.get(`${API_URL}/health`)
-  .then(response => console.log(response.data))
-  .catch(error => console.error('Error:', error));
-
+const API_URL = "http://localhost:5000"; // Update to the correct backend URL once it is set up
 let currentPage = 1;  // To keep track of which page of results we are on
 
 // Function to add an ingredient to the list
@@ -42,7 +37,6 @@ function getIngredients() {
 // Search recipes by ingredient (from local database)
 async function searchRecipes() {
     const ingredients = getIngredients();
-    console.log('Ingredients:', ingredients); // Debugging
     if (ingredients.length === 0) {
         alert("Please add some ingredients first!");
         return;
@@ -51,7 +45,6 @@ async function searchRecipes() {
     try {
         const response = await fetch(`${API_URL}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`);
         const recipes = await response.json();
-        console.log('Recipes:', recipes);  // Debugging
 
         const resultsList = document.getElementById("searchResults");
         resultsList.innerHTML = ""; // Clear previous results
@@ -74,18 +67,17 @@ async function searchRecipes() {
 
         // Add button to load more recipes
         const loadMoreButton = document.createElement("button");
-        loadMoreButton.textContent = "Find More Recipes With These Ingredients";
-        loadMoreButton.onclick = loadMoreRecipesSearch;
+        loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
+        loadMoreButton.onclick = loadMoreRecipes;
         resultsList.appendChild(loadMoreButton);
 
     } catch (error) {
         console.error("Error fetching recipes:", error);
-        document.getElementById("searchResults").innerHTML = "<li>Error searching recipes. Please try again later.</li>";
     }
 }
 
-// Function to load more search results
-async function loadMoreRecipesSearch() {
+// Function to load more recipes
+async function loadMoreRecipes() {
     currentPage++; // Increase the page number
     searchRecipes(); // Fetch the next set of recipes
 }
@@ -120,19 +112,12 @@ async function fetchRecipes() {
 
         // Add button to load more recipes
         const loadMoreButton = document.createElement("button");
-        loadMoreButton.textContent = "Load More Recipes";
-        loadMoreButton.onclick = loadMoreRecipesAll;
+        loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
+        loadMoreButton.onclick = loadMoreRecipes;
         recipeList.appendChild(loadMoreButton);
     } catch (error) {
         console.error("Error fetching recipes:", error);
-        document.getElementById("recipeList").innerHTML = "<li>Error loading recipes. Please try again later.</li>";
     }
-}
-
-// Function to load more recipes from all recipes list
-async function loadMoreRecipesAll() {
-    currentPage++; // Increase the page number
-    fetchRecipes(); // Fetch the next set of recipes
 }
 
 // Add a new recipe (to local database)
@@ -154,7 +139,7 @@ async function addRecipe() {
         });
 
         const result = await response.json();
-        alert(result.message || "Recipe added successfully!");
+        alert(result.message);
         fetchRecipes();
 
         // Clear input fields after submission
@@ -163,7 +148,6 @@ async function addRecipe() {
         document.getElementById("recipeInstructions").value = "";
     } catch (error) {
         console.error("Error adding recipe:", error);
-        alert("Failed to add recipe. Please try again.");
     }
 }
 
@@ -177,104 +161,81 @@ async function deleteRecipe(id) {
 
         const response = await fetch(`${API_URL}/recipes/${id}`, { method: "DELETE" });
         const result = await response.json();
-        alert(result.message || "Recipe deleted successfully!");
+        alert(result.message);
         fetchRecipes();
     } catch (error) {
         console.error("Error deleting recipe:", error);
-        alert("Failed to delete recipe. Please try again.");
-        // Re-enable the button if there was an error
-        if (event && event.target) {
-            event.target.disabled = false;
-        }
     }
 }
 
-// Ask AI for a recipe suggestion with improved debugging
+// Ask AI for a recipe suggestion (moved to backend)
 async function askAI() {
     const prompt = document.getElementById("recipePrompt").value.trim();
-    const responseBox = document.getElementById("aiResponse");
-
     if (!prompt) {
-        alert("Please enter a question for AI!");
+        alert("Enter a question for AI!");
         return;
     }
-
-    responseBox.innerText = "Thinking... 🤔";
-    console.log("Sending request to AI endpoint with prompt:", prompt);
 
     try {
         const response = await fetch(`${API_URL}/ask-ai`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify({ prompt }),
         });
-        
-        console.log("Response status:", response.status);
-        
-        const data = await response.json();
-        console.log("Response data:", data);
-        
-        if (data.error) {
-            throw new Error(data.error + (data.details ? ': ' + data.details : ''));
-        }
 
-        responseBox.innerText = data.response || "No response received from AI.";
+        const data = await response.json();
+        document.getElementById("aiResponse").innerText = data.response || "No response.";
     } catch (error) {
-        console.error("Error getting AI response:", error);
-        responseBox.innerText = `Error: ${error.message || "Unknown error"}. Please try again later.`;
+        document.getElementById("aiResponse").innerText = `Error getting AI response: ${error.message}`;
     }
 }
 
-// Function to test OpenAI connection
-async function testOpenAIConnection() {
-    const responseBox = document.getElementById("aiResponse") || 
-                        document.getElementById("searchResults") || 
-                        document.getElementById("recipeList");
-    
-    if (responseBox) {
-        responseBox.innerText = "Testing OpenAI connection...";
-    } else {
-        console.log("Testing OpenAI connection...");
-    }
-    
+// Function to show the capture button after opening the camera
+function showCaptureButton() {
+    const captureButton = document.getElementById('captureButton');
+    captureButton.style.display = 'block';
+}
+
+// Function to start the camera and show the capture button
+async function startCamera() {
     try {
-        const response = await fetch(`${API_URL}/test-openai`);
-        const data = await response.json();
-        
-        if (responseBox) {
-            if (data.status === 'success') {
-                responseBox.innerText = "OpenAI connection successful! You can ask for recipe suggestions.";
-            } else {
-                responseBox.innerText = "OpenAI connection test failed: " + data.error;
-            }
-        }
-        
-        console.log("OpenAI test result:", data);
+        const videoElement = document.getElementById('video');
+        const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = videoStream;
+        videoElement.style.display = 'block';
+
+        // Show the capture button
+        showCaptureButton();
     } catch (error) {
-        console.error("Error testing OpenAI:", error);
-        if (responseBox) {
-            responseBox.innerText = "Error testing OpenAI connection: " + error.message;
-        }
+        console.error('Error accessing the camera:', error);
     }
 }
 
 // Load recipes on page load
-document.addEventListener("DOMContentLoaded", () => {
-    fetchRecipes();
-    
-    // Add a "Test OpenAI" button to the page for debugging
-    const aiSection = document.querySelector(".ai-section") || document.body;
-    const testButton = document.createElement("button");
-    testButton.textContent = "Test OpenAI Connection";
-    testButton.onclick = testOpenAIConnection;
-    testButton.style.marginTop = "10px";
-    aiSection.appendChild(testButton);
-});
+document.addEventListener("DOMContentLoaded", fetchRecipes);
 
-// Automatically trigger adding ingredient when Enter is pressed
-document.getElementById("ingredientInput").addEventListener("keypress", function (event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        addIngredient();
+// Camera functionality
+const openCameraBtn = document.querySelector('.open-camera-btn');
+const captureBtn = document.querySelector('.capture-btn');
+const videoContainer = document.querySelector('.video-container');
+const videoElement = document.querySelector('video');
+
+openCameraBtn.addEventListener('click', async () => {
+    try {
+        // Access the user's camera
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        // Add the "camera-active" class to the video container
+        videoContainer.classList.add('camera-active');
+
+        // Make the capture button visible
+        captureBtn.style.display = 'block';
+    } catch (err) {
+        console.error('Error accessing camera:', err);
+        alert('Could not access the camera. Please check your permissions.');
     }
 });

@@ -55,9 +55,11 @@ router.post('/login', (req, res) => {
       if (!match) {
         return res.status(401).json({ message: 'Incorrect password' });
       }
+      else
       res.json({ message: '✅ Login successful!' });
     });
   });
 });
 
 module.exports = router;
+  
