@@ -237,8 +237,18 @@
 
         // Function to delete all ingredients
         function deleteAllIngredients() {
+            // Clear the ingredient list
             const list = document.getElementById('ingredientList');
             list.innerHTML = '';
+            
+            // Also clear any recommended recipes
+            const recipesList = document.getElementById('recipesList');
+            if (recipesList) {
+                recipesList.innerHTML = '<div class="message">Add ingredients to see recipe recommendations</div>';
+            }
+            
+            // Reset the shown recipe IDs set to start fresh
+            shownRecipeIds.clear();
         }
 
         // Function to get ingredients from the list
