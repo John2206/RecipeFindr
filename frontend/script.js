@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000"; // Update to the correct backend URL once it is set up
+const API_URL = "http://localhost:5000"; // Base backend URL
+const API_BASE = `${API_URL}/api`; // API endpoint base
 let currentPage = 1;  // To keep track of which page of results we are on
 
 // Function to add an ingredient to the list
@@ -43,13 +44,22 @@ async function searchRecipes() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`);
-        const recipes = await response.json();
+        const response = await fetch(`${API_BASE}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`, {
+            headers: AuthService.getAuthHeaders() // Add auth headers
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error fetching recipes: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const recipes = data.recipes;
 
         const resultsList = document.getElementById("searchResults");
         resultsList.innerHTML = ""; // Clear previous results
 
-        if (recipes.length === 0) {
+        if (!recipes || recipes.length === 0) {
             resultsList.innerHTML = "<li>No recipes found with these ingredients.</li>";
             return;
         }
@@ -65,35 +75,46 @@ async function searchRecipes() {
             resultsList.appendChild(recipeItem);
         });
 
-        // Add button to load more recipes
-        const loadMoreButton = document.createElement("button");
-        loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
-        loadMoreButton.onclick = loadMoreRecipes;
-        resultsList.appendChild(loadMoreButton);
+        if (data.currentPage < data.totalPages) {
+            const loadMoreButton = document.createElement("button");
+            loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
+            loadMoreButton.onclick = loadMoreRecipes;
+            resultsList.appendChild(loadMoreButton);
+        }
 
     } catch (error) {
         console.error("Error fetching recipes:", error);
+        document.getElementById("searchResults").innerHTML = `<li>Error: ${error.message}</li>`;
     }
 }
 
 // Function to load more recipes
 async function loadMoreRecipes() {
     currentPage++; // Increase the page number
-    searchRecipes(); // Fetch the next set of recipes
+    await searchRecipes(); // Fetch the next set of recipes
 }
 
-// Fetch all recipes from local backend (limited to 10)
+// Fetch all recipes from local backend
 async function fetchRecipes() {
     try {
         const recipeList = document.getElementById("recipeList");
         recipeList.innerHTML = "<li>Loading...</li>"; // Show loading text
 
-        const response = await fetch(`${API_URL}/recipes?limit=10&page=${currentPage}`);
-        const recipes = await response.json();
+        const response = await fetch(`${API_BASE}/recipes?limit=10&page=${currentPage}`, {
+            headers: AuthService.getAuthHeaders() // Add auth headers
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error fetching recipes: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const recipes = data.recipes;
 
         recipeList.innerHTML = ""; // Clear loading text
 
-        if (recipes.length === 0) {
+        if (!recipes || recipes.length === 0) {
             recipeList.innerHTML = "<li>No recipes found.</li>";
             return;
         }
@@ -110,13 +131,16 @@ async function fetchRecipes() {
             recipeList.appendChild(recipeItem);
         });
 
-        // Add button to load more recipes
-        const loadMoreButton = document.createElement("button");
-        loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
-        loadMoreButton.onclick = loadMoreRecipes;
-        recipeList.appendChild(loadMoreButton);
+        if (data.currentPage < data.totalPages) {
+            const loadMoreButton = document.createElement("button");
+            loadMoreButton.textContent = "Load More Recipes";
+            loadMoreButton.onclick = loadMoreRecipes;
+            recipeList.appendChild(loadMoreButton);
+        }
     } catch (error) {
         console.error("Error fetching recipes:", error);
+        const recipeList = document.getElementById("recipeList");
+        recipeList.innerHTML = `<li>Error fetching recipes: ${error.message}</li>`;
     }
 }
 
@@ -132,22 +156,28 @@ async function addRecipe() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/recipes`, {
+        const response = await fetch(`${API_BASE}/recipes`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: AuthService.getAuthHeaders(),
             body: JSON.stringify({ name, ingredients, instructions }),
         });
 
         const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || `Failed to add recipe: ${response.statusText}`);
+        }
+
         alert(result.message);
+        currentPage = 1; // Reset to first page to show the new recipe
         fetchRecipes();
 
-        // Clear input fields after submission
         document.getElementById("recipeName").value = "";
         document.getElementById("recipeIngredients").value = "";
         document.getElementById("recipeInstructions").value = "";
     } catch (error) {
         console.error("Error adding recipe:", error);
+        alert(`Error adding recipe: ${error.message}`);
     }
 }
 
@@ -156,39 +186,52 @@ async function deleteRecipe(id) {
     if (!confirm("Are you sure you want to delete this recipe?")) return;
 
     try {
-        const button = event.target;
-        button.disabled = true; // Disable button to prevent multiple clicks
+        const response = await fetch(`${API_BASE}/recipes/${id}`, {
+            method: "DELETE",
+            headers: AuthService.getAuthHeaders()
+        });
 
-        const response = await fetch(`${API_URL}/recipes/${id}`, { method: "DELETE" });
         const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || `Failed to delete recipe: ${response.statusText}`);
+        }
+
         alert(result.message);
         fetchRecipes();
     } catch (error) {
         console.error("Error deleting recipe:", error);
+        alert(`Error deleting recipe: ${error.message}`);
     }
 }
 
-// Ask AI for a recipe suggestion (moved to backend)
+// Ask AI for a recipe suggestion
 async function askAI() {
     const prompt = document.getElementById("recipePrompt").value.trim();
     if (!prompt) {
         alert("Enter a question for AI!");
         return;
     }
+    const aiResponseElement = document.getElementById("aiResponse");
+    aiResponseElement.innerText = "Asking AI...";
 
     try {
-        const response = await fetch(`${API_URL}/ask-ai`, {
+        const response = await fetch(`${API_BASE}/ask-ai`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: AuthService.getAuthHeaders(),
             body: JSON.stringify({ prompt }),
         });
 
         const data = await response.json();
-        document.getElementById("aiResponse").innerText = data.response || "No response.";
+
+        if (!response.ok) {
+            throw new Error(data.error || `Failed to get AI response: ${response.statusText}`);
+        }
+
+        aiResponseElement.innerText = data.response || "No response.";
     } catch (error) {
-        document.getElementById("aiResponse").innerText = `Error getting AI response: ${error.message}`;
+        console.error("Error getting AI response:", error);
+        aiResponseElement.innerText = `Error getting AI response: ${error.message}`;
     }
 }
 
@@ -206,7 +249,6 @@ async function startCamera() {
         videoElement.srcObject = videoStream;
         videoElement.style.display = 'block';
 
-        // Show the capture button
         showCaptureButton();
     } catch (error) {
         console.error('Error accessing the camera:', error);
@@ -224,15 +266,11 @@ const videoElement = document.querySelector('video');
 
 openCameraBtn.addEventListener('click', async () => {
     try {
-        // Access the user's camera
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         videoElement.srcObject = stream;
         videoElement.play();
 
-        // Add the "camera-active" class to the video container
         videoContainer.classList.add('camera-active');
-
-        // Make the capture button visible
         captureBtn.style.display = 'block';
     } catch (err) {
         console.error('Error accessing camera:', err);

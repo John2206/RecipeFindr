@@ -37,22 +37,30 @@
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const registerButton = e.target.querySelector('button[type="submit"]'); // Get button
 
             if (password !== confirmPassword) {
                 alert('Passwords do not match');
                 return;
             }
-            
+
+            registerButton.disabled = true; // Disable button
+            registerButton.textContent = 'Registering...'; // Update button text
+
             try {
-                await register(username, email, password);
-                window.location.href = 'index.html';
+                 // Use AuthService.register
+                const result = await AuthService.register(username, email, password);
+                alert(result.message || 'Registration successful! Please log in.'); // Show success message from backend
+                window.location.href = 'login.html'; // Redirect to login page after successful registration
             } catch (error) {
-                alert(error.message);
+                alert(`Registration failed: ${error.message}`); // Show specific error
+                registerButton.disabled = false; // Re-enable button on error
+                registerButton.textContent = 'Register'; // Restore button text
             }
         });
     </script>

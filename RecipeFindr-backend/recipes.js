@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(verifyToken);
 
 // Fetch recipes with pagination
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
@@ -24,12 +24,13 @@ router.get('/', async (req, res) => {
     });
   } catch (err) {
     console.error('❌ Failed to fetch recipes:', err.message);
-    res.status(500).json({ error: 'Failed to fetch recipes' });
+    // Pass the error to the centralized error handler
+    next(err);
   }
 });
 
 // Search recipes by ingredient (simple LIKE search)
-router.get('/search', async (req, res) => {
+router.get('/search', async (req, res, next) => {
   const { ingredient } = req.query;
   if (!ingredient) {
     return res.status(400).json({ error: 'No ingredient provided' });
@@ -47,12 +48,13 @@ router.get('/search', async (req, res) => {
     res.json(results);
   } catch (err) {
     console.error('❌ Failed to search recipes:', err.message);
-    res.status(500).json({ error: 'Failed to search recipes' });
+    // Pass the error to the centralized error handler
+    next(err);
   }
 });
 
 // Add a new recipe (associated with logged-in user)
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { name, ingredients, instructions, prep_time, cook_time, servings, thumbnail_url } = req.body;
   const userId = req.user.id; // Get user ID from authenticated request
 
@@ -63,7 +65,8 @@ router.post('/', async (req, res) => {
   if (typeof name !== 'string' || typeof ingredients !== 'string' || typeof instructions !== 'string') {
       return res.status(400).json({ error: 'Invalid data types for name, ingredients, or instructions' });
   }
-  // Add more validation as needed (lengths, numeric types for times/servings, URL format)
+  // TODO: Add more robust validation here using a library like express-validator
+  // e.g., check lengths, numeric types, URL format
 
   try {
     const [result] = await db.query(
@@ -73,12 +76,13 @@ router.post('/', async (req, res) => {
     res.status(201).json({ message: '✅ Recipe added successfully!', recipeId: result.insertId }); // Use 201 Created
   } catch (err) {
     console.error('❌ Failed to add recipe:', err.message);
-    res.status(500).json({ error: 'Failed to add recipe' });
+    // Pass the error to the centralized error handler
+    next(err);
   }
 });
 
 // Delete a recipe (ensure user owns the recipe or is admin - basic check shown)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.id;
 
@@ -104,7 +108,8 @@ router.delete('/:id', async (req, res) => {
     res.json({ message: '✅ Recipe deleted successfully!' });
   } catch (err) {
     console.error('❌ Failed to delete recipe:', err.message);
-    res.status(500).json({ error: 'Failed to delete recipe' });
+    // Pass the error to the centralized error handler
+    next(err);
   }
 });
 

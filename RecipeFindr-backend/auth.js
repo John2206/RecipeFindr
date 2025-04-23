@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET; // Reads JWT_SECRET from .env
 const SALT_ROUNDS = 12; // Define salt rounds
 
 // Register User
-router.post('/signup', async (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, email, password } = req.body; // Added email
   if (!username || !email || !password) { // Check for email
     return res.status(400).json({ message: 'Username, email, and password required' });
@@ -49,7 +49,7 @@ router.post('/signup', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error during signup:', err.message);
+    console.error('❌ Error during registration:', err.message);
     res.status(500).json({ message: 'Server error during registration' });
   }
 });

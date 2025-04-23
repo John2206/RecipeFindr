@@ -10,7 +10,7 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 router.use(verifyToken);
 
 // POST route to handle AI requests (e.g., OpenAI API)
-router.post('/ask-ai', async (req, res) => {
+router.post('/ask-ai', async (req, res, next) => {
   const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' });
@@ -51,9 +51,8 @@ router.post('/ask-ai', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error with OpenAI API:', error.response ? error.response.data : error.message);
-    const statusCode = error.response ? error.response.status : 500;
-    const errorMessage = error.response?.data?.error?.message || 'Failed to fetch AI response';
-    res.status(statusCode).json({ error: errorMessage });
+    // Pass the error to the centralized error handler
+    next(error);
   }
 });
 

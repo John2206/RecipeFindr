@@ -1,0 +1,97 @@
+/* Styles for the Footer component */
+
+footer {
+    background: #1f1f1f;
+    color: #999;
+    padding: 40px 0 20px 0; /* Adjusted padding */
+    margin-top: 60px; /* Increased top margin */
+    border-top: 1px solid #333;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto 30px auto;
+    padding: 0 20px;
+    gap: 30px; /* Add gap between sections */
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 200px; /* Prevent sections from becoming too narrow */
+    margin-bottom: 20px; /* Add margin for wrap */
+}
+
+.footer-section h3 {
+    color: #e0e0e0; /* Lighter footer headings */
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+}
+
+.footer-section p {
+    color: #999;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 8px;
+}
+
+.footer-section ul li a {
+    color: #bbb;
+    font-size: 0.95rem;
+}
+
+.footer-section ul li a:hover {
+    color: #ff5733;
+    text-decoration: underline;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.social-link {
+    color: #bbb;
+    font-size: 0.95rem;
+}
+
+.social-link:hover {
+    color: #ff5733;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+.footer-bottom p {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Media Queries for Footer */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-section {
+        min-width: unset;
+    }
+    .social-links {
+        justify-content: center;
+    }
+}

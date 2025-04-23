@@ -28,15 +28,21 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const loginButton = e.target.querySelector('button[type="submit"]'); // Get button
+            loginButton.disabled = true; // Disable button
+            loginButton.textContent = 'Logging in...'; // Update button text
 
             try {
-                await login(username, password);
-                window.location.href = 'index.html';
+                // Use AuthService.login
+                await AuthService.login(username, password);
+                window.location.href = 'index.html'; // Redirect handled by auth.js now, but keep as fallback? Or remove.
             } catch (error) {
-                alert(error.message);
+                alert(`Login failed: ${error.message}`); // Show specific error
+                loginButton.disabled = false; // Re-enable button on error
+                loginButton.textContent = 'Login'; // Restore button text
             }
         });
     </script>

@@ -483,6 +483,262 @@ video {
 
 
 /* ======================================== */
+/* == Camera Page Specific Styles == */
+/* ======================================== */
+
+/* Center text */
+.text-center {
+  text-align: center;
+}
+
+/* Center camera controls */
+.camera-controls-center {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+/* Flash effect */
+.flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: opacity 0.1s ease-out;
+}
+
+.flash.active {
+  opacity: 0.8;
+}
+
+/* Camera page section */
+.camera-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+/* Camera description */
+.camera-description {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  color: #bbb;
+  font-size: 1.1rem;
+}
+
+/* Camera overlay */
+.camera-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Preview container */
+.preview-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #1f1f1f;
+  border-radius: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.preview-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #e0e0e0;
+}
+
+.preview-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#preview {
+  display: block;
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Preview actions */
+.preview-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Scan button */
+.scan-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex; /* Align icon and text */
+  align-items: center;
+  gap: 8px;
+}
+
+.scan-btn:hover {
+  background: #388e3c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(56, 142, 60, 0.4);
+}
+
+.scan-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.scan-icon {
+  font-size: 1.1rem;
+}
+
+/* Scan results */
+.scan-results {
+  margin-top: 20px;
+  text-align: center;
+  color: #e0e0e0;
+  width: 100%; /* Take full width within wrapper */
+}
+
+.scan-results h3 {
+  margin-bottom: 10px;
+}
+
+.scan-results ul {
+  list-style: none;
+  padding: 0;
+}
+
+.scan-results ul li {
+  margin: 5px 0;
+}
+
+/* Error and no-results messages */
+.scan-results .error,
+.scan-results .no-results {
+  color: #ff9966;
+  font-style: italic;
+  padding: 10px;
+}
+
+/* Ingredient list styling */
+#ingredientsList {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: left;
+}
+
+#ingredientsList li {
+  padding: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#ingredientsList li:last-child {
+  border-bottom: none;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ccc;
+  border-top: 4px solid #4caf50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.close-btn:hover {
+  background: rgba(255, 87, 51, 0.7);
+}
+
+/* Remove photo button */
+.remove-btn {
+  background: #ff5733;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.remove-btn:hover {
+  background: #e64a19;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(230, 74, 25, 0.4);
+}
+
+.remove-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+/* Ensure camera container styles from main style.css are applied if needed */
+/* Add any missing styles from the original inline <style> block here */
+
+
+/* ======================================== */
 /* == 6. MEDIA QUERIES == */
 /* ======================================== */
 /* ... existing 992px query ... */
