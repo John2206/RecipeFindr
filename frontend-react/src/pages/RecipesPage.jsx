@@ -53,7 +53,7 @@ function RecipesPage() {
       }
       
       const data = await response.json();
-      setRecipes(data);
+      setRecipes(data.recipes || []);
     } catch (err) {
       console.error('Error fetching recipes:', err);
       setError('Failed to fetch recipes. Please try again.');
