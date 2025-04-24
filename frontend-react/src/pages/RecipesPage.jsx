@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { APIContext } from '../App';
 import { Link } from 'react-router-dom';
 
+const baseUrl = 'http://localhost:5000';
+
 function RecipesPage() {
+  const { baseUrl: contextBaseUrl } = useContext(APIContext);
   const [ingredients, setIngredients] = useState([]);
   const [currentIngredient, setCurrentIngredient] = useState('');
   const [recipes, setRecipes] = useState([]);
@@ -35,31 +39,21 @@ function RecipesPage() {
     setError(null);
 
     try {
-      // This would be replaced with an actual API call in production
-      console.log('Searching for recipes with ingredients:', ingredients);
-      
-      // Simulating API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock response - would be replaced with actual API response
-      const mockRecipes = [
-        {
-          id: 1,
-          title: 'Pasta with Tomato Sauce',
-          image: 'https://via.placeholder.com/300x200',
-          readyInMinutes: 30,
-          difficulty: 'Easy'
+      // Real API call to the backend
+      const response = await fetch(`${baseUrl}/api/recipes/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          id: 2,
-          title: 'Chicken Stir Fry',
-          image: 'https://via.placeholder.com/300x200',
-          readyInMinutes: 45,
-          difficulty: 'Medium'
-        }
-      ];
+        body: JSON.stringify({ ingredients })
+      });
       
-      setRecipes(mockRecipes);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setRecipes(data);
     } catch (err) {
       console.error('Error fetching recipes:', err);
       setError('Failed to fetch recipes. Please try again.');
@@ -69,10 +63,26 @@ function RecipesPage() {
   };
 
   const findOtherRecipes = async () => {
-    // Similar implementation to searchRecipes but with different criteria
-    // For now, we'll just log a message
-    console.log('Finding similar recipes...');
-    // Actual implementation would be added later
+    // Similar to searchRecipes but with different criteria
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Get all recipes from backend as we're not filtering by specific ingredients
+      const response = await fetch(`${baseUrl}/api/recipes`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setRecipes(data);
+    } catch (err) {
+      console.error('Error finding other recipes:', err);
+      setError('Failed to find other recipes. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -143,6 +153,9 @@ function RecipesPage() {
                     <p>Ready in {recipe.readyInMinutes} minutes</p>
                     <div className="recipe-meta">
                       <span>{recipe.difficulty} difficulty</span>
+                      {recipe.matchingIngredients && (
+                        <span>Matches: {recipe.matchingIngredients}/{recipe.totalIngredients} ingredients</span>
+                      )}
                     </div>
                     <Link to={`/display-recipes?id=${recipe.id}`} className="view-recipe-btn">
                       View Recipe

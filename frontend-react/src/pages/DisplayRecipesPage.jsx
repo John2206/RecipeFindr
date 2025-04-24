@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { APIContext } from '../App';
+
+const baseUrl = 'http://localhost:5000';
 
 function DisplayRecipesPage() {
+  const { baseUrl: contextBaseUrl } = useContext(APIContext);
   const [searchParams] = useSearchParams();
   const recipeId = searchParams.get('id');
   
@@ -19,47 +23,16 @@ function DisplayRecipesPage() {
 
       try {
         setIsLoading(true);
-        // Simulate API call - in production, this would be an actual fetch to the backend
-        console.log(`Fetching recipe details for ID: ${recipeId}`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Mock recipe data that would come from the API
-        const mockRecipe = {
-          id: recipeId,
-          title: 'Delicious Pasta with Tomato Sauce',
-          readyInMinutes: 30,
-          servings: 4,
-          difficulty: 'Medium',
-          image: 'https://via.placeholder.com/500x300?text=Pasta+Recipe',
-          extendedIngredients: [
-            { name: 'pasta', amount: 250, unit: 'g' },
-            { name: 'tomatoes', amount: 4, unit: 'medium' },
-            { name: 'garlic', amount: 2, unit: 'cloves' },
-            { name: 'olive oil', amount: 2, unit: 'tbsp' },
-            { name: 'basil', amount: 1, unit: 'handful' }
-          ],
-          analyzedInstructions: [
-            {
-              steps: [
-                { step: 'Boil water and cook pasta according to package instructions.' },
-                { step: 'Chop tomatoes and mince garlic.' },
-                { step: 'Heat olive oil in a pan and sauté garlic until fragrant.' },
-                { step: 'Add tomatoes and simmer for 15 minutes.' },
-                { step: 'Drain pasta and mix with sauce. Garnish with fresh basil.' }
-              ]
-            }
-          ],
-          nutrition: {
-            calories: '380 kcal',
-            protein: '12g',
-            carbs: '65g',
-            fat: '6g'
-          }
-        };
-
-        setRecipe(mockRecipe);
+        const response = await fetch(`${baseUrl}/api/recipes/${recipeId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const recipeData = await response.json();
+        setRecipe(recipeData);
       } catch (err) {
-        console.error('Error fetching recipe:', err);
+        console.error('Error fetching recipe details:', err);
         setError('Failed to load recipe. Please try again later.');
       } finally {
         setIsLoading(false);
@@ -67,9 +40,11 @@ function DisplayRecipesPage() {
     };
 
     fetchRecipeDetails();
-  }, [recipeId]);
+  }, [recipeId, baseUrl]);
 
   const handlePrintRecipe = () => {
+    if (!recipe) return;
+    
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       alert('Please allow pop-ups to print this recipe');
@@ -104,21 +79,21 @@ function DisplayRecipesPage() {
           <div class="recipe-info">
             <h2>Ingredients</h2>
             <ul>
-              ${recipe.extendedIngredients.map(ingredient => 
+              ${recipe.extendedIngredients?.map(ingredient => 
                 `<li>${ingredient.amount} ${ingredient.unit} ${ingredient.name}</li>`
-              ).join('')}
+              ).join('') || '<li>No ingredients information available</li>'}
             </ul>
             <h2>Instructions</h2>
             <ol>
-              ${recipe.analyzedInstructions[0].steps.map(step => 
+              ${recipe.analyzedInstructions?.[0]?.steps?.map(step => 
                 `<li>${step.step}</li>`
-              ).join('')}
+              ).join('') || '<li>No instructions available</li>'}
             </ol>
             <h2>Nutrition Information</h2>
-            <p>Calories: ${recipe.nutrition.calories}</p>
-            <p>Protein: ${recipe.nutrition.protein}</p>
-            <p>Carbs: ${recipe.nutrition.carbs}</p>
-            <p>Fat: ${recipe.nutrition.fat}</p>
+            <p>Calories: ${recipe.nutrition?.calories || '--'}</p>
+            <p>Protein: ${recipe.nutrition?.protein || '--'}</p>
+            <p>Carbs: ${recipe.nutrition?.carbs || '--'}</p>
+            <p>Fat: ${recipe.nutrition?.fat || '--'}</p>
           </div>
         </body>
       </html>

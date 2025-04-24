@@ -1,16 +1,13 @@
 import React from 'react';
-// We might need Link from react-router-dom later
-// import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
   return (
-    // No need for <main> here as App.jsx will likely provide it
     <>
-      <section className="hero"> {/* class becomes className */}
+      <section className="hero">
         <h1>Welcome to RecipeFindr</h1>
         <p>Discover and create your favorite recipes with the ingredients you already have!</p>
-        {/* Use relative path for now, will become <Link> later */}
-        <a href="/recipes" className="btn cta-btn">Browse Recipes</a>
+        <Link to="/recipes" className="btn cta-btn">Browse Recipes</Link>
       </section>
 
       <section className="features">
