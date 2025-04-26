@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser'); // bodyParser is deprecated, express.json/urlencoded are preferred
 const recipesRouter = require('./routes/recipes');
-const authRouter = require('./routes/auth');
+const authRouter = require('./auth'); // <-- Change this line
 const aiRouter = require('./routes/ai'); // Assuming AI routes will be moved
 const predictRouter = require('./routes/predict'); // Assuming predict routes will be moved
 

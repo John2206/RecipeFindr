@@ -2,7 +2,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../db'); // Correct path to db.js
+const db = require('./db'); // Correct path to db.js
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET; // Reads JWT_SECRET from .env
