@@ -1,2 +1,2 @@
-# Ignore the secure folder
-.secure/
+.env
+node_modules/
