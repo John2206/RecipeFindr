@@ -554,5 +554,92 @@
             }
         });
     </script>
+    <script src="script.js"></script>
+    <script src="auth.js"></script>
+    
+    <style>
+        /* AI Recipe Response Styling */
+        .ai-recipe-response {
+            background-color: #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-family: 'Poppins', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .ai-recipe-response h3 {
+            color: #4caf50;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .ai-recipe-response h3:first-child {
+            margin-top: 0;
+        }
+        
+        .ai-recipe-response li {
+            margin: 8px 0;
+            line-height: 1.5;
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        
+        .ai-recipe-response a {
+            color: #4caf50;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        
+        .ai-recipe-response a:hover {
+            color: #6abf69;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .loading::before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            border: 3px solid #444;
+            border-top: 3px solid #4caf50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .message {
+            text-align: center;
+            padding: 20px;
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+    </style>
 </body>
 </html>

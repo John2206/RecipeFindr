@@ -183,18 +183,20 @@
         const imageData = canvas.toDataURL('image/jpeg').split(',')[1]; // Remove data:image/jpeg;base64, prefix
         
         // Send the image to the backend API
-        const response = await fetch('/api/recognize', {
+        const response = await fetch('/api/predict/predict', { // Updated path
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...AuthService.getAuthHeaders() // Add authentication headers if needed
           },
-          body: JSON.stringify({ 
-            image: imageData 
+          body: JSON.stringify({
+            image: imageData
           })
         });
 
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(errorData.error || `API error: ${response.status}`);
         }
 
         // Parse the API response
@@ -205,25 +207,15 @@
         
         // Display the detected ingredients
         if (result.ingredients && result.ingredients.length > 0) {
-          result.ingredients.forEach(ingredient => {
-            const li = document.createElement('li');
-            li.textContent = ingredient;
-            ingredientsList.appendChild(li);
-          });
+          ingredientsList.innerHTML = result.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('');
         } else {
-          const li = document.createElement('li');
-          li.textContent = 'No ingredients detected. Try taking a clearer photo.';
-          li.classList.add('no-results');
-          ingredientsList.appendChild(li);
+          ingredientsList.innerHTML = '<li class="no-results">No ingredients detected. Try a clearer photo.</li>';
         }
-      } catch (err) {
-        console.error('Error during AI scan:', err);
+
+      } catch (error) {
+        console.error('Error scanning photo:', error);
         loadingSpinner.style.display = 'none';
-        
-        const li = document.createElement('li');
-        li.textContent = 'Failed to analyze image. Please try again.';
-        li.classList.add('error');
-        ingredientsList.appendChild(li);
+        ingredientsList.innerHTML = `<li class="error">Error: ${error.message}</li>`;
       }
     });
   </script>
@@ -461,4 +453,3 @@
   </style>
 </body>
 </html>
-``` 

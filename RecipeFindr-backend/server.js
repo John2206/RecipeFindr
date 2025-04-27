@@ -1,43 +1,26 @@
 require('dotenv').config(); // Load environment variables first
-const express = require('express');
 const mysql = require('mysql2');
-const tf = require('@tensorflow/tfjs-node'); // Keep if needed for direct TF operations here, otherwise remove
 const http = require('http');
-const mlModel = require('./ml-model'); // Keep if mlModel functions are called directly here, otherwise remove if only used in routes/predict.js
 const appInstance = require('./App'); // Import the configured app instance
 
 // Use the app instance from App.js
 const app = appInstance;
 
-const PORT = process.env.PORT || 5000; // Reads PORT from .env
+const PORT = process.env.PORT || 5002; // Reads PORT from .env, fallback to 5002
 
-// Database pool setup (can stay here or be solely in db.js)
+// Database connection pool (using mysql2/promise for async/await)
 const db = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1', // Use env var or default
-  user: process.env.DB_USER || 'root',     // Use env var or default
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || 'recipedb', // Use env var or default
+  host: process.env.DB_HOST || '127.0.0.1', // Use env variable or default
+  user: process.env.DB_USER || 'root', // Use env variable or default
+  password: process.env.DB_PASSWORD, // MUST be set in .env
+  database: process.env.DB_NAME || 'recipedb', // Use env variable or default
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
+  queueLimit: 0
 }).promise(); // Use promise pool from db.js instead if preferred
-
-// Check database connection (can stay here or be solely in db.js)
-db.getConnection()
-  .then(connection => {
-    console.log('✅ Connected to the database.');
-    connection.release(); // Release the connection back to the pool
-  })
-  .catch(err => {
-      console.error('❌ Database connection failed:', err.message);
-      // Consider exiting if DB is essential for startup
-      // process.exit(1);
-  });
 
 // Create HTTP server using the app from App.js
 const server = http.createServer(app);
-
-// PORT is already defined at the top of the file
 
 // Function to start the server
 const startServer = () => {
@@ -47,33 +30,41 @@ const startServer = () => {
 
   server.on('error', (error) => {
     if (error.syscall !== 'listen') {
-      throw error;
+      throw error; // Re-throw errors not related to listening
     }
     const bind = typeof PORT === 'string' ? 'Pipe ' + PORT : 'Port ' + PORT;
     switch (error.code) {
       case 'EACCES':
         console.error(`❌ ${bind} requires elevated privileges`);
-        process.exit(1);
-        break;
+        process.exit(1); // Exit if permission denied
+        break; // Added break
       case 'EADDRINUSE':
         console.error(`❌ ${bind} is already in use`);
-        process.exit(1);
-        break;
+        process.exit(1); // Exit if port is busy
+        break; // Added break
       default:
-        throw error;
+        console.error('❌ Server startup error:', error); // Log other errors
+        throw error; // Re-throw unexpected errors
     }
   });
 };
 
 // Start the server directly
-startServer();
+startServer(); // Ensure this is called
 
 // Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
+process.on('SIGINT', () => {
+  console.log('🔌 Shutting down server...');
   server.close(() => {
-    console.log('HTTP server closed');
-    // Close database connection pool if needed (pool manages connections automatically)
-    process.exit(0);
+    console.log('✅ Server closed.');
+    // Close database pool if needed (optional, depends on pool behavior)
+    db.end(err => {
+        if (err) {
+            console.error('❌ Error closing database pool:', err.message);
+        } else {
+            console.log('✅ Database pool closed.');
+        }
+        process.exit(0);
+    });
   });
 });

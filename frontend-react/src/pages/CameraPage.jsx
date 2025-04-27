@@ -102,25 +102,52 @@ function CameraPage() {
 
   const scanPhoto = async () => {
     if (!capturedImage) return;
-    
+
     setIsAnalyzing(true);
     setScanCompleted(false);
-    
+    setDetectedIngredients([]); // Clear previous results
+
     try {
-      // This would be replaced with actual API call in production
-      console.log('Sending image for AI analysis');
-      
-      // Simulate API call delay
+      // TODO: Replace mock with actual API call to '/api/predict/predict'
+      console.log('Sending image for AI analysis to /api/predict/predict'); // Updated log message
+
+      // Extract base64 data from the data URL
+      const base64ImageData = capturedImage.split(',')[1];
+
+      // Simulate API call delay (REMOVE THIS IN PRODUCTION)
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock response - would be replaced with actual API response
-      const mockIngredients = ['Tomato', 'Onion', 'Garlic', 'Bell Pepper'];
-      
-      setDetectedIngredients(mockIngredients);
+
+      // --- Replace below with actual fetch ---
+      // const response = await fetch(`${baseUrl}/api/predict/predict`, { // Use contextBaseUrl if available
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     // Add Authorization header if needed:
+      //     // 'Authorization': `Bearer ${your_auth_token}`
+      //   },
+      //   body: JSON.stringify({ image: base64ImageData })
+      // });
+
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.error || `API error: ${response.status}`);
+      // }
+
+      // const result = await response.json();
+      // const detected = result.ingredients || [];
+      // --- End of fetch replacement section ---
+
+
+      // Mock response - REMOVE THIS IN PRODUCTION
+      const mockIngredients = ['Tomato', 'Onion', 'Garlic', 'Bell Pepper', 'Cucumber']; // Example
+      const detected = mockIngredients; // Use mock data
+
+      setDetectedIngredients(detected);
       setScanCompleted(true);
     } catch (err) {
       console.error('Error during AI scan:', err);
-      setDetectedIngredients(['Failed to analyze image. Please try again.']);
+      setDetectedIngredients([`Error: ${err.message}`]); // Show error in the list
+      setScanCompleted(true); // Mark scan as completed even on error
     } finally {
       setIsAnalyzing(false);
     }
@@ -189,7 +216,7 @@ function CameraPage() {
                     )}
                   </ul>
                   
-                  {detectedIngredients.length > 0 && (
+                  {detectedIngredients.length > 0 && !detectedIngredients.some(ing => ing.startsWith('Error:')) && (
                     <button 
                       className="btn cta-btn"
                       onClick={findRecipesWithIngredients}

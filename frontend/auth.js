@@ -150,7 +150,7 @@ const AuthService = (() => {
 
     // Check authentication on page load
     document.addEventListener('DOMContentLoaded', () => {
-        const protectedPages = ['recipes.html', 'displayRecipes.html', 'camera.html']; // Added camera.html as example
+        const protectedPages = ['displayRecipes.html', 'camera.html']; // Removed recipes.html from protected pages
         const currentPage = window.location.pathname.split('/').pop();
 
         // If on a protected page and not authenticated, redirect to login

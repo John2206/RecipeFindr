@@ -1,9 +1,8 @@
 // app.js
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser'); // bodyParser is deprecated, express.json/urlencoded are preferred
 const recipesRouter = require('./routes/recipes');
-const authRouter = require('./auth'); // <-- Change this line
+const authRouter = require('./auth'); // Assuming auth routes are in auth.js
 const aiRouter = require('./routes/ai'); // Assuming AI routes will be moved
 const predictRouter = require('./routes/predict'); // Assuming predict routes will be moved
 
@@ -15,15 +14,17 @@ app.use(express.json({ limit: '10mb' })); // Increase limit for potential image 
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
 // Routes
-app.use('/api/recipes', recipesRouter); // Prefix API routes
-app.use('/api/auth', authRouter);     // Prefix API routes
-app.use('/api', aiRouter);            // Prefix API routes (/api/ask-ai)
-app.use('/api', predictRouter);       // Prefix API routes (/api/predict)
 
-// Basic root route
+// Basic root route (Define this specific route first)
 app.get('/api', (req, res) => {
     res.json({ message: 'Welcome to RecipeFindr API' });
 });
+
+// Then mount the routers with prefixes or more specific paths
+app.use('/api/recipes', recipesRouter); // Prefix API routes
+app.use('/api/auth', authRouter);     // Prefix API routes
+app.use('/api/ai', aiRouter);         // Changed prefix to /api/ai (handles /api/ai/ask-ai)
+app.use('/api/predict', predictRouter); // Changed prefix to /api/predict (handles /api/predict/predict)
 
 // Error Handling Middleware (Basic)
 // Not Found
@@ -38,6 +39,5 @@ app.use((err, req, res, next) => {
         error: err.message || 'Internal Server Error'
     });
 });
-
 
 module.exports = app;

@@ -10,13 +10,15 @@ function addIngredient() {
 
     if (ingredient) {
         const listItem = document.createElement("li");
-        listItem.textContent = ingredient;
+        const span = document.createElement("span");
+        span.textContent = ingredient;
 
         // Create delete button
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "❌";
         deleteButton.onclick = () => listItem.remove();
 
+        listItem.appendChild(span);
         listItem.appendChild(deleteButton);
         list.appendChild(listItem);
         input.value = "";
@@ -30,12 +32,11 @@ function deleteAllIngredients() {
 
 // Function to get all ingredients from the list
 function getIngredients() {
-    return Array.from(document.querySelectorAll("#ingredientList li"))
-        .map(item => item.textContent.replace("❌", "").trim())
-        .filter(ingredient => ingredient); // Filter out empty ingredients
+    const listItems = document.querySelectorAll("#ingredientList li span");
+    return Array.from(listItems).map(item => item.textContent.trim());
 }
 
-// Search recipes by ingredient (from local database)
+// Modified to search recipes using AI web search
 async function searchRecipes() {
     const ingredients = getIngredients();
     if (ingredients.length === 0) {
@@ -43,65 +44,131 @@ async function searchRecipes() {
         return;
     }
 
+    // Get the results container - on recipes.html page
+    const resultsList = document.getElementById("recipesList");
+    if (!resultsList) {
+        console.error("Cannot find recipesList element");
+        return;
+    }
+
+    // Show loading state
+    resultsList.innerHTML = '<div class="loading">🤖 Asking AI to find recipes from the web...</div>';
+
+    // Construct a comprehensive prompt for OpenAI to search web recipes
+    const prompt = `Search the web for recipes that use these ingredients: ${ingredients.join(", ")}. 
+    For each recipe, provide:
+    1. Recipe title
+    2. Ingredients list
+    3. Brief cooking instructions
+    4. Approximate cooking time
+    5. Link to the original recipe if available
+    
+    Format your response clearly with headers and bullet points. Return 3-5 recipes.`;
+
     try {
-        const response = await fetch(`${API_BASE}/recipes/search?ingredient=${ingredients.join(",")}&limit=10&page=${currentPage}`, {
-            headers: AuthService.getAuthHeaders() // Add auth headers
+        // Get headers based on authentication status
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Try to add auth headers if the user is authenticated
+        try {
+            if (AuthService.isAuthenticated()) {
+                headers = {
+                    ...headers,
+                    ...AuthService.getAuthHeaders()
+                };
+            }
+        } catch (authError) {
+            console.log("User not authenticated, proceeding as guest");
+        }
+
+        const response = await fetch(`${API_BASE}/ai/ask-ai`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ prompt: prompt })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || `Error fetching recipes: ${response.statusText}`);
+            if (response.status === 401) {
+                // If unauthorized, show login prompt
+                if (confirm("You need to be logged in to use the AI recipe search. Would you like to log in now?")) {
+                    window.location.href = 'login.html';
+                    return;
+                } else {
+                    resultsList.innerHTML = '<div class="message">Please log in to use the AI recipe search feature.</div>';
+                    return;
+                }
+            }
+            throw new Error(errorData.error || `AI request failed: ${response.statusText}`);
         }
 
         const data = await response.json();
-        const recipes = data.recipes;
+        const aiResponseText = data.response;
 
-        const resultsList = document.getElementById("searchResults");
-        resultsList.innerHTML = ""; // Clear previous results
+        // Clear loading/previous results
+        resultsList.innerHTML = "";
 
-        if (!recipes || recipes.length === 0) {
-            resultsList.innerHTML = "<li>No recipes found with these ingredients.</li>";
+        if (!aiResponseText) {
+            resultsList.innerHTML = '<div class="message">AI could not find any recipes. Try different ingredients.</div>';
             return;
         }
 
-        recipes.forEach(recipe => {
-            const recipeItem = document.createElement("li");
-            recipeItem.innerHTML = `
-                <strong>${recipe.name}</strong><br>
-                Ingredients: ${recipe.ingredients}<br>
-                Instructions: ${recipe.instructions}<br>
-                <hr>
-            `;
-            resultsList.appendChild(recipeItem);
-        });
+        // Display the AI response with formatting
+        const responseContainer = document.createElement("div");
+        responseContainer.className = 'ai-recipe-response';
+        
+        // Basic sanitization and formatting
+        const sanitizedHtml = aiResponseText
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            // Format recipe titles (lines starting with "#" or "##" or numbered "1.")
+            .replace(/^(#+|[0-9]+\.)\s*(.*?)$/gm, '<h3>$2</h3>')
+            // Format links - convert markdown links [text](url) to HTML links
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+            // Format list items
+            .replace(/^(\s*[-*])\s+(.*?)$/gm, '<li>$2</li>')
+            // Replace newlines with break tags
+            .replace(/\n\n/g, '<br>')
+            .replace(/\n/g, '<br>');
+            
+        responseContainer.innerHTML = sanitizedHtml;
+        resultsList.appendChild(responseContainer);
 
-        if (data.currentPage < data.totalPages) {
-            const loadMoreButton = document.createElement("button");
-            loadMoreButton.textContent = "Find Other Recipes Using These Ingredients";
-            loadMoreButton.onclick = loadMoreRecipes;
-            resultsList.appendChild(loadMoreButton);
+        // Hide pagination and similarity buttons if they exist
+        const buttonGroup = document.querySelector(".button-group");
+        if (buttonGroup) {
+            const loadMoreButton = buttonGroup.querySelector('button[onclick="loadMoreRecipes()"]');
+            const findSimilarButton = buttonGroup.querySelector('button[onclick="findOtherRecipes()"]');
+            if (loadMoreButton) loadMoreButton.style.display = 'none';
+            if (findSimilarButton) findSimilarButton.style.display = 'none';
         }
 
     } catch (error) {
-        console.error("Error fetching recipes:", error);
-        document.getElementById("searchResults").innerHTML = `<li>Error: ${error.message}</li>`;
+        console.error("Error asking AI for recipes:", error);
+        if (typeof displayErrorMessage === 'function') {
+            displayErrorMessage(error);
+        } else {
+            resultsList.innerHTML = `<div class="error-message">Error finding recipes: ${error.message}</div>`;
+        }
     }
 }
 
 // Function to load more recipes
 async function loadMoreRecipes() {
-    currentPage++; // Increase the page number
-    await searchRecipes(); // Fetch the next set of recipes
+    currentPage++;
+    await searchRecipes();
 }
 
 // Fetch all recipes from local backend
 async function fetchRecipes() {
     try {
         const recipeList = document.getElementById("recipeList");
-        recipeList.innerHTML = "<li>Loading...</li>"; // Show loading text
+        recipeList.innerHTML = "<li>Loading...</li>";
 
         const response = await fetch(`${API_BASE}/recipes?limit=10&page=${currentPage}`, {
-            headers: AuthService.getAuthHeaders() // Add auth headers
+            headers: AuthService.getAuthHeaders()
         });
 
         if (!response.ok) {
@@ -112,7 +179,7 @@ async function fetchRecipes() {
         const data = await response.json();
         const recipes = data.recipes;
 
-        recipeList.innerHTML = ""; // Clear loading text
+        recipeList.innerHTML = "";
 
         if (!recipes || recipes.length === 0) {
             recipeList.innerHTML = "<li>No recipes found.</li>";
@@ -169,7 +236,7 @@ async function addRecipe() {
         }
 
         alert(result.message);
-        currentPage = 1; // Reset to first page to show the new recipe
+        currentPage = 1;
         fetchRecipes();
 
         document.getElementById("recipeName").value = "";
@@ -207,31 +274,64 @@ async function deleteRecipe(id) {
 
 // Ask AI for a recipe suggestion
 async function askAI() {
-    const prompt = document.getElementById("recipePrompt").value.trim();
-    if (!prompt) {
-        alert("Enter a question for AI!");
+    const ingredientsList = document.getElementById("ingredientList");
+    const ingredients = Array.from(ingredientsList.children).map(li => li.textContent.replace('×', '').trim());
+
+    if (ingredients.length === 0) {
+        alert("Please add some ingredients first!");
         return;
     }
-    const aiResponseElement = document.getElementById("aiResponse");
-    aiResponseElement.innerText = "Asking AI...";
+
+    const aiResultsDiv = document.getElementById("aiRecipeSuggestion");
+    aiResultsDiv.innerHTML = "<p>🤖 Asking AI for a suggestion...</p>";
 
     try {
-        const response = await fetch(`${API_BASE}/ask-ai`, {
-            method: "POST",
-            headers: AuthService.getAuthHeaders(),
-            body: JSON.stringify({ prompt }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || `Failed to get AI response: ${response.statusText}`);
+        // Get headers based on authentication status
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Try to add auth headers if the user is authenticated
+        try {
+            if (AuthService.isAuthenticated()) {
+                headers = {
+                    ...headers,
+                    ...AuthService.getAuthHeaders()
+                };
+            }
+        } catch (authError) {
+            console.log("User not authenticated, proceeding as guest");
         }
 
-        aiResponseElement.innerText = data.response || "No response.";
+        const response = await fetch(`${API_BASE}/ai/ask-ai`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ ingredients })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            if (response.status === 401) {
+                // If unauthorized, show login prompt
+                if (confirm("You need to be logged in to use the AI recipe suggestion. Would you like to log in now?")) {
+                    window.location.href = 'login.html';
+                    return;
+                } else {
+                    aiResultsDiv.innerHTML = "<p>Please log in to use the AI recipe suggestion feature.</p>";
+                    return;
+                }
+            }
+            throw new Error(errorData.error || `AI request failed: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        aiResultsDiv.innerHTML = `
+            <h3>AI Recipe Suggestion:</h3>
+            <p>${data.suggestion.replace(/\n/g, '<br>')}</p>
+        `;
     } catch (error) {
-        console.error("Error getting AI response:", error);
-        aiResponseElement.innerText = `Error getting AI response: ${error.message}`;
+        console.error("Error asking AI:", error);
+        aiResultsDiv.innerHTML = `<p class="error-message">Error getting AI suggestion: ${error.message}</p>`;
     }
 }
 
