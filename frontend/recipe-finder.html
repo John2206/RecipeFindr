@@ -25,53 +25,73 @@
 
     <main>
         <div class="container">
-            <section class="recipe-finder">
+            <section class="hero recipe-hero">
                 <h1>Find Recipes with Your Ingredients</h1>
-                <p>Enter the ingredients you have, and we'll find the perfect recipe for you!</p>
-                
-                <form id="recipeFinderForm">
-                    <div class="form-group">
+                <p>Enter the ingredients you have, and we'll find the perfect recipe tailored just for you!</p>
+            </section>
+
+            <section class="recipe-finder-container">
+                <form id="recipeFinderForm" class="recipe-form">
+                    <div class="form-group ingredients-input">
                         <label for="ingredients">Ingredients (comma separated):</label>
-                        <input type="text" id="ingredients" name="ingredients" 
-                               placeholder="e.g., chicken, onions, garlic" required>
+                        <div class="input-with-icon">
+                            <input type="text" id="ingredients" name="ingredients" 
+                                placeholder="e.g., chicken, onions, garlic" required>
+                            <span class="input-icon">🥗</span>
+                        </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="cuisine">Cuisine (optional):</label>
-                            <select id="cuisine" name="cuisine">
-                                <option value="">Any</option>
+                            <select id="cuisine" name="cuisine" class="custom-select">
+                                <option value="">Any Cuisine</option>
                                 <option value="Italian">Italian</option>
                                 <option value="Mexican">Mexican</option>
                                 <option value="Indian">Indian</option>
                                 <option value="Chinese">Chinese</option>
                                 <option value="Mediterranean">Mediterranean</option>
+                                <option value="Japanese">Japanese</option>
+                                <option value="Thai">Thai</option>
+                                <option value="French">French</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="dietary">Dietary Preference (optional):</label>
-                            <select id="dietary" name="dietary">
-                                <option value="">None</option>
+                            <label for="dietary">Dietary Preference:</label>
+                            <select id="dietary" name="dietary" class="custom-select">
+                                <option value="">No Restrictions</option>
                                 <option value="Vegetarian">Vegetarian</option>
                                 <option value="Vegan">Vegan</option>
                                 <option value="Gluten-Free">Gluten-Free</option>
                                 <option value="Keto">Keto</option>
+                                <option value="Low-Carb">Low-Carb</option>
+                                <option value="Dairy-Free">Dairy-Free</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="time">Max Cook Time (min):</label>
-                            <input type="number" id="time" name="time" min="5" max="240" value="30">
+                            <div class="time-input">
+                                <input type="range" id="timeSlider" min="5" max="120" value="30" 
+                                       oninput="document.getElementById('time').value=this.value; document.getElementById('timeDisplay').textContent=this.value;">
+                                <div class="time-display">
+                                    <input type="number" id="time" name="time" min="5" max="120" value="30" 
+                                           oninput="document.getElementById('timeSlider').value=this.value; document.getElementById('timeDisplay').textContent=this.value;">
+                                    <span id="timeDisplay">30</span> minutes
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn-primary btn-large">Find Recipes</button>
+                    <button type="submit" class="btn-primary">Find My Perfect Recipe</button>
                 </form>
 
-                <div id="loadingIndicator" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Finding delicious recipes for you...</p>
+                <div id="loadingIndicator" class="recipe-loading" style="display: none;">
+                    <div class="spinner-container">
+                        <div class="spinner"></div>
+                    </div>
+                    <p>Discovering delicious recipes with your ingredients...</p>
                 </div>
                 
                 <div id="recipeResult" class="recipe-result">
@@ -86,7 +106,31 @@
     </main>
 
     <footer>
-        <p>&copy; 2025 RecipeFindr - Find delicious recipes with your ingredients!</p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About RecipeFindr</h3>
+                <p>The smart way to discover recipes using ingredients you already have at home.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="recipe-finder.html">Find Recipes</a></li>
+                    <li><a href="camera.html">Scan Ingredients</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link">Instagram</a>
+                    <a href="#" class="social-link">Twitter</a>
+                    <a href="#" class="social-link">Facebook</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 RecipeFindr - Find delicious recipes with your ingredients!</p>
+        </div>
     </footer>
 
     <script>
@@ -101,8 +145,8 @@
                 `;
             } else {
                 authLinks.innerHTML = `
-                    <a href="login.html" class="btn-login">Login</a>
-                    <a href="register.html" class="btn-register">Register</a>
+                    <a href="login.html" class="auth-btn">Login</a>
+                    <a href="register.html" class="auth-btn register">Register</a>
                 `;
             }
 
@@ -176,20 +220,126 @@
             function displayRecipe(recipeText) {
                 const recipeContainer = document.getElementById('recipeResult');
                 
-                // Convert the recipe text to HTML with proper formatting
-                // This is a simple approach; for more robust formatting you might want to use a markdown parser
-                const formattedHtml = recipeText
-                    .replace(/\n\n/g, '</p><p>') // Double line breaks become new paragraphs
-                    .replace(/\n([0-9]+\.)/g, '<br>$1') // Numbered lists keep their numbers
-                    .replace(/\n\*/g, '<br>•') // Bullet points become HTML bullets
-                    .replace(/\n-/g, '<br>-') // Dashes become HTML dashes
-                    .replace(/^(.*?):\s/gm, '<strong>$1:</strong> '); // Bold the headers
+                // Process different parts of the recipe
+                let sections = processRecipeText(recipeText);
                 
-                recipeContainer.innerHTML = `<div class="recipe-card"><p>${formattedHtml}</p></div>`;
+                recipeContainer.innerHTML = `
+                    <div class="recipe-card modern-recipe">
+                        <div class="recipe-header">
+                            <h2>${sections.title || 'Delicious Recipe'}</h2>
+                        </div>
+                        <div class="recipe-body">
+                            ${sections.description ? `<div class="recipe-description">${sections.description}</div>` : ''}
+                            
+                            ${sections.ingredients ? `
+                                <div class="recipe-section">
+                                    <h3>Ingredients</h3>
+                                    <ul class="ingredients-list">
+                                        ${sections.ingredients}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${sections.instructions ? `
+                                <div class="recipe-section">
+                                    <h3>Instructions</h3>
+                                    <ol class="instructions-list">
+                                        ${sections.instructions}
+                                    </ol>
+                                </div>
+                            ` : ''}
+                            
+                            ${sections.meta ? `
+                                <div class="recipe-meta-info">
+                                    ${sections.meta}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
                 recipeContainer.style.display = 'block';
                 
                 // Scroll to the results
-                recipeContainer.scrollIntoView({ behavior: 'smooth' });
+                recipeContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            // Helper function to process recipe text into structured HTML
+            function processRecipeText(text) {
+                const sections = {
+                    title: '',
+                    description: '',
+                    ingredients: '',
+                    instructions: '',
+                    meta: ''
+                };
+                
+                // Extract title (first line or "Recipe Name" section)
+                const titleMatch = text.match(/^(.+?)(\n|$)/) || text.match(/Recipe Name:?\s*(.+?)(\n|$)/i);
+                if (titleMatch) {
+                    sections.title = titleMatch[1].replace(/^\d+\.\s*/, '').trim();
+                }
+                
+                // Extract ingredients (look for "Ingredients:" section)
+                const ingredientsMatch = text.match(/Ingredients:?\s*([\s\S]*?)(?=Instructions:|Directions:|Steps:|Method:|Preparation:|Prep time:|Cook time:|Serving|$)/i);
+                if (ingredientsMatch) {
+                    sections.ingredients = ingredientsMatch[1].trim()
+                        .split('\n')
+                        .filter(line => line.trim())
+                        .map(line => `<li>${line.replace(/^-\s*|^\*\s*/, '')}</li>`)
+                        .join('');
+                }
+                
+                // Extract instructions (look for "Instructions:" or "Directions:" section)
+                const instructionsMatch = text.match(/(?:Instructions|Directions|Steps|Method|Preparation):?\s*([\s\S]*?)(?=Prep time:|Cook time:|Serving|Notes:|Tips:|$)/i);
+                if (instructionsMatch) {
+                    // Convert numbered lists or create numbers if none exist
+                    const instructionsText = instructionsMatch[1].trim();
+                    const instructionLines = instructionsText.split('\n').filter(line => line.trim());
+                    
+                    const formattedInstructions = instructionLines.map((line, index) => {
+                        // If line already starts with a number, use it as is
+                        if (/^\d+\.?\s+/.test(line)) {
+                            return `<li>${line.replace(/^\d+\.?\s+/, '')}</li>`;
+                        }
+                        // Otherwise, number it ourselves
+                        return `<li>${line.replace(/^-\s*|^\*\s*/, '')}</li>`;
+                    }).join('');
+                    
+                    sections.instructions = formattedInstructions;
+                }
+                
+                // Extract meta information (prep time, cook time, serving size)
+                const metaMatches = [];
+                const prepTimeMatch = text.match(/Prep time:?\s*(.+?)(\n|$)/i);
+                const cookTimeMatch = text.match(/Cook time:?\s*(.+?)(\n|$)/i);
+                const servingMatch = text.match(/Serving[s\s]*:?\s*(.+?)(\n|$)/i) || text.match(/yields:?\s*(.+?)(\n|$)/i);
+                
+                if (prepTimeMatch) metaMatches.push(`<span class="meta-item"><strong>Prep:</strong> ${prepTimeMatch[1].trim()}</span>`);
+                if (cookTimeMatch) metaMatches.push(`<span class="meta-item"><strong>Cook:</strong> ${cookTimeMatch[1].trim()}</span>`);
+                if (servingMatch) metaMatches.push(`<span class="meta-item"><strong>Servings:</strong> ${servingMatch[1].trim()}</span>`);
+                
+                sections.meta = metaMatches.join('');
+                
+                // Extract description (anything that's not captured above)
+                // Look for content before ingredients or after the title
+                let descriptionText = '';
+                if (titleMatch) {
+                    const afterTitle = text.slice(titleMatch[0].length).trim();
+                    const beforeIngredients = ingredientsMatch ? 
+                        afterTitle.split(/Ingredients:?/i)[0].trim() : 
+                        afterTitle.split(/Instructions:?|Directions:?/i)[0].trim();
+                    
+                    if (beforeIngredients && beforeIngredients.length > 10) {
+                        descriptionText = beforeIngredients;
+                    }
+                }
+                
+                if (descriptionText) {
+                    sections.description = `<p>${descriptionText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+                }
+                
+                return sections;
             }
             
             function showError(message) {

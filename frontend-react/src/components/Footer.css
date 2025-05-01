@@ -1,11 +1,12 @@
-/* Styles for the Footer component */
+/* Styles for the Footer component - Modern and sleek */
 
 footer {
-    background: #1f1f1f;
+    background: linear-gradient(to top, #151515, #1a1a1a);
     color: #999;
-    padding: 40px 0 20px 0; /* Adjusted padding */
-    margin-top: 60px; /* Increased top margin */
-    border-top: 1px solid #333;
+    padding: 50px 0 20px 0;
+    margin-top: 80px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .footer-content {
@@ -13,27 +14,40 @@ footer {
     justify-content: space-around;
     flex-wrap: wrap;
     max-width: 1200px;
-    margin: 0 auto 30px auto;
+    margin: 0 auto 40px auto;
     padding: 0 20px;
-    gap: 30px; /* Add gap between sections */
+    gap: 40px;
 }
 
 .footer-section {
     flex: 1;
-    min-width: 200px; /* Prevent sections from becoming too narrow */
-    margin-bottom: 20px; /* Add margin for wrap */
+    min-width: 200px;
+    margin-bottom: 25px;
 }
 
 .footer-section h3 {
-    color: #e0e0e0; /* Lighter footer headings */
-    font-size: 1.3rem;
-    margin-bottom: 15px;
+    color: #f0f0f0;
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.footer-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(to right, #ff5733, transparent);
 }
 
 .footer-section p {
     color: #999;
     font-size: 0.95rem;
     margin-bottom: 10px;
+    line-height: 1.6;
 }
 
 .footer-section ul {

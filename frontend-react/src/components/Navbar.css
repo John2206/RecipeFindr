@@ -1,40 +1,51 @@
-/* Styles for the Navbar component */
+/* Styles for the Navbar component - Modern and Sleek */
 
 .menu-icon {
     position: fixed;
-    top: 20px; /* Position from the top */
-    right: 25px; /* Position from the right */
-    font-size: 28px;
+    top: 20px;
+    right: 25px;
+    font-size: 26px;
     font-weight: bold;
-    color: #e0e0e0;
+    color: #f0f0f0;
     cursor: pointer;
-    transition: transform 0.2s ease-in-out, color 0.3s ease;
-    z-index: 1001; /* Ensure it's above other content */
-    padding: 5px;
-    display: block; /* Always display the icon */
+    transition: transform 0.3s ease-out, color 0.3s ease;
+    z-index: 1001;
+    padding: 8px;
+    display: block;
+    background: rgba(31, 31, 31, 0.4);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .menu-icon:hover {
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(90deg);
     color: #ff5733;
 }
 
 .overlay {
     height: 100%;
-    width: 0; /* Start hidden (zero width) */
+    width: 0;
     position: fixed;
-    z-index: 1000; /* Below icon, above content */
+    z-index: 1000;
     top: 0;
-    right: 0; /* Slide in from the right */
-    background: rgba(31, 31, 31, 0.97); /* Slightly more opaque */
-    overflow-x: hidden; /* Disable horizontal scroll */
-    transition: width 0.5s ease-in-out; /* Animate width change */
-    padding-top: 60px;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+    right: 0;
+    background: rgba(25, 25, 25, 0.98);
+    overflow-x: hidden;
+    transition: all 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    padding-top: 70px;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .overlay.show {

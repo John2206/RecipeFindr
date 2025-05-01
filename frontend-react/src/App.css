@@ -1,38 +1,45 @@
-/* App specific styles */
+/* App specific styles - Modern and Sleek Design */
 .main-content {
   min-height: calc(100vh - 200px); /* Adjust for footer */
-  padding: 20px;
+  padding: 30px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Loading indicator */
+/* Loading indicator - Improved version */
 .loading {
   text-align: center;
   padding: 40px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #e0e0e0;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
-/* Error messages */
+/* Error messages - Enhanced with subtle gradient */
 .error-message {
   color: #ff6b6b;
-  background-color: rgba(255, 107, 107, 0.1);
-  padding: 10px;
-  border-radius: 5px;
-  margin: 10px 0;
+  background: linear-gradient(to right, rgba(255, 107, 107, 0.05), rgba(255, 107, 107, 0.1));
+  padding: 15px;
+  border-radius: 10px;
+  margin: 15px 0;
   text-align: center;
+  border-left: 3px solid #ff6b6b;
+  font-weight: 400;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* AI Recipe Response Styles */
+/* AI Recipe Response Styles - Modern card design */
 .ai-recipe-response {
-  background-color: #222;
-  border-radius: 10px;
-  padding: 20px;
-  margin: 20px 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  background-color: #1f1f1f;
+  border-radius: 15px;
+  padding: 30px;
+  margin: 25px auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   font-family: 'Poppins', sans-serif;
   max-width: 800px;
-  margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.7;
+  border: 1px solid #333;
 }
 
 .ai-recipe-response h3 {
@@ -99,4 +106,139 @@
 
 .recipes-container {
   padding: 20px;
+}
+
+/* Modern Recipe Cards with sleek design */
+.recipe-card {
+  background-color: #1f1f1f;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 87, 51, 0.2);
+}
+
+.recipe-card__image {
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
+.recipe-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.recipe-card:hover .recipe-card__image img {
+  transform: scale(1.05);
+}
+
+.recipe-card__content {
+  padding: 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-card__title {
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+  color: #f0f0f0;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recipe-card__description {
+  color: #b0b0b0;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
+.recipe-card__meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.recipe-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.recipe-card__actions {
+  margin-top: 20px;
+}
+
+.recipe-card__button {
+  background: linear-gradient(45deg, #ff5733, #ff9966);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  display: inline-block;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(255, 87, 51, 0.3);
+}
+
+.recipe-card__button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(255, 87, 51, 0.4);
+  background: linear-gradient(45deg, #ff9966, #ff5733);
+}
+
+/* Recipe grid layout */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin: 40px 0;
+}
+
+/* Empty state styling */
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  background: rgba(31, 31, 31, 0.5);
+  border-radius: 16px;
+  margin: 40px 0;
+}
+
+.empty-state__icon {
+  font-size: 3rem;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.empty-state__text {
+  color: #aaa;
+  font-size: 1.1rem;
+  margin-bottom: 25px;
 }
