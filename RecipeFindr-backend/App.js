@@ -1,8 +1,9 @@
 // app.js
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // Add path module
 const recipesRouter = require('./routes/recipes');
-const authRouter = require('./auth'); // Assuming auth routes are in auth.js
+const authRouter = require('./routes/auth'); // Move auth.js to routes folder
 const aiRouter = require('./routes/ai'); // Assuming AI routes will be moved
 const predictRouter = require('./routes/predict'); // Assuming predict routes will be moved
 
@@ -12,6 +13,9 @@ const app = express();
 app.use(cors()); // Enable CORS for all origins (consider restricting in production)
 app.use(express.json({ limit: '10mb' })); // Increase limit for potential image data in predict
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+
+// Serve static files from the frontend directory
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Routes
 
@@ -25,6 +29,11 @@ app.use('/api/recipes', recipesRouter); // Prefix API routes
 app.use('/api/auth', authRouter);     // Prefix API routes
 app.use('/api/ai', aiRouter);         // Changed prefix to /api/ai (handles /api/ai/ask-ai)
 app.use('/api/predict', predictRouter); // Changed prefix to /api/predict (handles /api/predict/predict)
+
+// Route for serving the frontend index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+});
 
 // Error Handling Middleware (Basic)
 // Not Found

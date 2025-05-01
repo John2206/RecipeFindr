@@ -16,23 +16,22 @@ router.post('/predict', async (req, res, next) => { // Added next for error hand
       return res.status(503).json({ error: 'Prediction service is temporarily unavailable.' }); // 503 Service Unavailable
   }
 
-  const { inputData } = req.body;
+  const { image } = req.body; // Expect 'image' from the request body
 
   // Basic input validation
-  if (!inputData) { // Check if inputData exists and is suitable (e.g., array, object)
-    return res.status(400).json({ error: 'Input data is required' });
+  if (!image) { // Check if image exists and is a string (base64)
+    return res.status(400).json({ error: 'Image data is required' });
   }
-  // Add more specific validation based on your model's expected input format
-  // e.g., if it expects an array of numbers:
-  // if (!Array.isArray(inputData) || !inputData.every(item => typeof item === 'number')) {
-  //    return res.status(400).json({ error: 'Input data must be an array of numbers' });
-  // }
+  if (typeof image !== 'string') {
+     return res.status(400).json({ error: 'Image data must be a base64 string' });
+  }
+  // Add more specific validation based on your model's expected input format if needed
 
   try {
-    console.log('🧠 Performing prediction with input:', inputData);
-    const result = await mlModel.predict(inputData);
+    console.log('🧠 Performing prediction with image data...'); // Log image data processing
+    const result = await mlModel.predict(image); // Pass the image data to the model
     console.log('✅ Prediction successful:', result);
-    return res.json({ prediction: result });
+    return res.json({ ingredients: result }); // Return as { ingredients: [...] }
   } catch (error) {
     console.error('❌ Error during prediction route:', error);
     // Pass the error to the centralized error handler in App.js

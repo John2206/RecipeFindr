@@ -4,10 +4,10 @@ const db = require('../db'); // Correct path to db.js
 const verifyToken = require('../middleware/authMiddleware'); // Import auth middleware
 const router = express.Router();
 
-// Apply authentication middleware to all recipe routes
-router.use(verifyToken);
+// Apply authentication middleware only to routes that need it
+// NOT applying router.use(verifyToken) to all routes anymore
 
-// Fetch recipes with pagination
+// Public route - Fetch recipes with pagination
 router.get('/', async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -29,7 +29,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// Search recipes by ingredient (simple LIKE search)
+// Public route - Search recipes by ingredient (simple LIKE search)
 router.get('/search', async (req, res, next) => {
   const { ingredient } = req.query;
   if (!ingredient) {
@@ -53,8 +53,8 @@ router.get('/search', async (req, res, next) => {
   }
 });
 
-// Add a new recipe (associated with logged-in user)
-router.post('/', async (req, res, next) => {
+// Protected route - Add a new recipe (associated with logged-in user)
+router.post('/', verifyToken, async (req, res, next) => {
   const { name, ingredients, instructions, prep_time, cook_time, servings, thumbnail_url } = req.body;
   const userId = req.user.id; // Get user ID from authenticated request
 
@@ -81,8 +81,8 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// Delete a recipe (ensure user owns the recipe or is admin - basic check shown)
-router.delete('/:id', async (req, res, next) => {
+// Protected route - Delete a recipe (ensure user owns the recipe or is admin)
+router.delete('/:id', verifyToken, async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.id;
 

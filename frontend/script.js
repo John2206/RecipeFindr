@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000"; // Base backend URL
+const API_URL = "http://localhost:5002"; // NEW: Use correct backend port
 const API_BASE = `${API_URL}/api`; // API endpoint base
 let currentPage = 1;  // To keep track of which page of results we are on
 

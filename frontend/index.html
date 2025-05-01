@@ -6,6 +6,7 @@
     <title>RecipeFindr - Home</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
 </head>
 <body>
 
@@ -13,17 +14,18 @@
     <div id="dimmed" class="dimmed"></div>
     <div id="overlay" class="overlay">
         <a href="index.html">Home</a>
-        <a href="recipes.html">Recipes</a>
+        <a href="recipe-finder.html">Find Recipes</a>
+        <a href="recipes.html">Browse Recipes</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
-        <a href="login.html">Login  </a>
+        <a href="login.html">Login</a>
     </div>
 
     <main>
         <section class="hero">
             <h1>Welcome to RecipeFindr</h1>
             <p>Discover and create your favorite recipes with the ingredients you already have!</p>
-            <a href="recipes.html" class="btn cta-btn">Browse Recipes</a>
+            <a href="recipe-finder.html" class="btn cta-btn">Find Recipes</a>
         </section>
 
         <section class="features">
@@ -31,16 +33,19 @@
                 <h2>What We Offer</h2>
                 <div class="feature-items">
                     <div class="feature">
-                        <h3>Personalized Recipes</h3>
-                        <p>Find recipes based on ingredients you already have in your kitchen.</p>
+                        <h3>Find Recipes</h3>
+                        <p>Discover delicious recipes based on ingredients you already have at home.</p>
+                        <a href="recipe-finder.html" class="btn-primary">Get Cooking</a>
                     </div>
                     <div class="feature">
-                        <h3>Meal Planning</h3>
-                        <p>Create meal plans for the week with our easy-to-use tools.</p>
+                        <h3>AI-Powered</h3>
+                        <p>Our AI helps you find the perfect recipe for your available ingredients.</p>
+                        <a href="recipe-finder.html" class="btn-primary">Try It Now</a>
                     </div>
                     <div class="feature">
-                        <h3>Recipe Sharing</h3>
-                        <p>Share your own recipes with the community.</p>
+                        <h3>Scan Ingredients</h3>
+                        <p>Use your camera to scan ingredients and get recipe suggestions.</p>
+                        <a href="camera.html" class="btn-primary">Scan Now</a>
                     </div>
                 </div>
             </div>
@@ -57,18 +62,11 @@
                 <h3>Quick Links</h3>
                 <ul>
                     <li><a href="index.html">Home</a></li>
-                    <li><a href="recipes.html">Recipes</a></li>
+                    <li><a href="recipe-finder.html">Find Recipes</a></li>
+                    <li><a href="recipes.html">Browse Recipes</a></li>
                     <li><a href="about.html">About</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Connect With Us</h3>
-                <div class="social-links">
-                    <a href="#" class="social-link">Facebook</a>
-                    <a href="#" class="social-link">Twitter</a>
-                    <a href="#" class="social-link">Instagram</a>
-                </div>
             </div>
         </div>
         <div class="footer-bottom">
@@ -78,41 +76,12 @@
 
     <script>
         function toggleMenu() {
-            const overlay = document.getElementById("overlay");
-            const dimmed = document.getElementById("dimmed");
-
-            if (overlay.classList.contains("show")) {
-                closeMenu();
-            } else {
-                overlay.classList.add("show");
-                dimmed.classList.add("show");
-            }
+            document.getElementById('overlay').classList.toggle('show');
+            document.getElementById('dimmed').classList.toggle('show');
         }
 
-        function closeMenu() {
-            const overlay = document.getElementById("overlay");
-            const dimmed = document.getElementById("dimmed");
-
-            overlay.classList.remove("show");
-            dimmed.classList.remove("show");
-        }
-
-        document.addEventListener("click", function(event) {
-            const overlay = document.getElementById("overlay");
-            const menuIcon = document.querySelector(".menu-icon");
-            const dimmed = document.getElementById("dimmed");
-
-            if (overlay.classList.contains("show") &&
-                !overlay.contains(event.target) &&
-                !menuIcon.contains(event.target)) {
-                closeMenu();
-            }
-        });
-
-        document.addEventListener("keydown", function(event) {
-            if (event.key === "Escape") {
-                closeMenu();
-            }
+        document.getElementById('dimmed').addEventListener('click', function() {
+            toggleMenu();
         });
     </script>
 

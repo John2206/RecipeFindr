@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Recipes - RecipeFindr</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">RecipeFindr</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="recipe-finder.html" class="active">Find Recipes</a></li>
+                <li><a href="camera.html">Scan Ingredients</a></li>
+                <li id="authLinks">
+                    <!-- Dynamically populated by script -->
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="recipe-finder">
+                <h1>Find Recipes with Your Ingredients</h1>
+                <p>Enter the ingredients you have, and we'll find the perfect recipe for you!</p>
+                
+                <form id="recipeFinderForm">
+                    <div class="form-group">
+                        <label for="ingredients">Ingredients (comma separated):</label>
+                        <input type="text" id="ingredients" name="ingredients" 
+                               placeholder="e.g., chicken, onions, garlic" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cuisine">Cuisine (optional):</label>
+                            <select id="cuisine" name="cuisine">
+                                <option value="">Any</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Mexican">Mexican</option>
+                                <option value="Indian">Indian</option>
+                                <option value="Chinese">Chinese</option>
+                                <option value="Mediterranean">Mediterranean</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dietary">Dietary Preference (optional):</label>
+                            <select id="dietary" name="dietary">
+                                <option value="">None</option>
+                                <option value="Vegetarian">Vegetarian</option>
+                                <option value="Vegan">Vegan</option>
+                                <option value="Gluten-Free">Gluten-Free</option>
+                                <option value="Keto">Keto</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="time">Max Cook Time (min):</label>
+                            <input type="number" id="time" name="time" min="5" max="240" value="30">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary btn-large">Find Recipes</button>
+                </form>
+
+                <div id="loadingIndicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Finding delicious recipes for you...</p>
+                </div>
+                
+                <div id="recipeResult" class="recipe-result">
+                    <!-- Results will appear here -->
+                </div>
+                
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    <!-- Error messages appear here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 RecipeFindr - Find delicious recipes with your ingredients!</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update auth links
+            const authLinks = document.getElementById('authLinks');
+            if (AuthService.isAuthenticated()) {
+                const user = AuthService.getCurrentUser();
+                authLinks.innerHTML = `
+                    <span class="user-welcome">Hello, ${user.username}</span>
+                    <button onclick="AuthService.logout()" class="btn-logout">Logout</button>
+                `;
+            } else {
+                authLinks.innerHTML = `
+                    <a href="login.html" class="btn-login">Login</a>
+                    <a href="register.html" class="btn-register">Register</a>
+                `;
+            }
+
+            // Handle recipe search form
+            document.getElementById('recipeFinderForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const ingredientsInput = document.getElementById('ingredients').value;
+                const cuisine = document.getElementById('cuisine').value;
+                const dietary = document.getElementById('dietary').value;
+                const time = document.getElementById('time').value;
+                
+                // Basic validation
+                if (!ingredientsInput.trim()) {
+                    showError('Please enter at least one ingredient');
+                    return;
+                }
+                
+                // Parse ingredients as array
+                const ingredients = ingredientsInput.split(',').map(item => item.trim()).filter(item => item);
+                if (ingredients.length === 0) {
+                    showError('Please enter valid ingredients');
+                    return;
+                }
+                
+                // Show loading indicator
+                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('recipeResult').innerHTML = '';
+                document.getElementById('errorMessage').style.display = 'none';
+                
+                try {
+                    const response = await fetch('http://localhost:5002/api/ai/search-recipes', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ingredients,
+                            cuisine,
+                            dietary,
+                            time: parseInt(time)
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        
+                        // Enhanced error handling with more specific user feedback
+                        if (data.error && data.error.includes('API key authentication failed')) {
+                            throw new Error('The recipe search service is currently unavailable. The administrator needs to update the OpenAI API key.');
+                        } else if (data.error && data.error.includes('rate limit')) {
+                            throw new Error('The recipe service is busy right now. Please try again in a few minutes.');
+                        } else {
+                            throw new Error(data.error || `Server error (${response.status}): Please try again later`);
+                        }
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Format the recipe content nicely
+                    displayRecipe(data.recipe);
+                    
+                } catch (error) {
+                    showError(error.message || 'Something went wrong while searching for recipes');
+                } finally {
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                }
+            });
+            
+            // Helper function to display the recipe with proper formatting
+            function displayRecipe(recipeText) {
+                const recipeContainer = document.getElementById('recipeResult');
+                
+                // Convert the recipe text to HTML with proper formatting
+                // This is a simple approach; for more robust formatting you might want to use a markdown parser
+                const formattedHtml = recipeText
+                    .replace(/\n\n/g, '</p><p>') // Double line breaks become new paragraphs
+                    .replace(/\n([0-9]+\.)/g, '<br>$1') // Numbered lists keep their numbers
+                    .replace(/\n\*/g, '<br>•') // Bullet points become HTML bullets
+                    .replace(/\n-/g, '<br>-') // Dashes become HTML dashes
+                    .replace(/^(.*?):\s/gm, '<strong>$1:</strong> '); // Bold the headers
+                
+                recipeContainer.innerHTML = `<div class="recipe-card"><p>${formattedHtml}</p></div>`;
+                recipeContainer.style.display = 'block';
+                
+                // Scroll to the results
+                recipeContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            function showError(message) {
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.innerHTML = `
+                    <p>${message}</p>
+                    ${message.includes('API key') ? 
+                        '<p><small>Note: This is a server configuration issue, not a problem with your information.</small></p>' : 
+                        ''}
+                `;
+                errorElement.style.display = 'block';
+                errorElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>
