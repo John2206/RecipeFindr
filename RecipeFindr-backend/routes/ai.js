@@ -6,6 +6,40 @@ const router = express.Router();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
+// Simple rate limiting implementation
+const rateLimiter = {
+  tokens: 100, // Increased initial tokens
+  maxTokens: 100, // Increased maximum tokens
+  lastRefill: Date.now(), // Last time tokens were refilled
+  refillRate: 20, // Increased refill rate (tokens per minute)
+  
+  // Check if a request can be made
+  canMakeRequest: function(cost = 1) {
+    this.refillTokens();
+    console.log(`[RateLimiter] Current tokens: ${this.tokens}, Cost: ${cost}`);
+    if (this.tokens >= cost) {
+      this.tokens -= cost;
+      console.log(`[RateLimiter] Request allowed. Tokens remaining: ${this.tokens}`);
+      return true;
+    }
+    console.warn(`[RateLimiter] Request blocked. Not enough tokens. Tokens available: ${this.tokens}, Cost: ${cost}`);
+    return false;
+  },
+  
+  // Refill tokens based on elapsed time
+  refillTokens: function() {
+    const now = Date.now();
+    const elapsedMinutes = (now - this.lastRefill) / (1000 * 60);
+    if (elapsedMinutes > 0) {
+      const tokensToAdd = Math.floor(elapsedMinutes * this.refillRate);
+      if (tokensToAdd > 0) {
+        this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
+        this.lastRefill = now;
+      }
+    }
+  }
+};
+
 // Validate API key format before handling requests
 const isValidOpenAIKey = (key) => {
   // Check if the key exists and has a valid format (starts with sk-)
@@ -14,6 +48,15 @@ const isValidOpenAIKey = (key) => {
 
 // Recipe search endpoint - completely public
 router.post('/search-recipes', async (req, res, next) => {
+  console.log(`[API /search-recipes] Received request with body:`, req.body);
+  // Check rate limit (recipe search costs 2 tokens as it's more expensive)
+  if (!rateLimiter.canMakeRequest(2)) {
+    console.warn('[API /search-recipes] Blocked by local rate limiter.');
+    return res.status(503).json({ 
+      error: 'Recipe service is currently experiencing high demand. Please try again in a few moments.' 
+    });
+  }
+
   const { ingredients, dietary, cuisine, time } = req.body;
   
   if (!ingredients || !ingredients.length) {
@@ -23,6 +66,10 @@ router.post('/search-recipes', async (req, res, next) => {
   // Validate OpenAI API key before making request
   if (!isValidOpenAIKey(OPENAI_API_KEY)) {
     console.error('❌ OpenAI API Key is missing or has invalid format:', OPENAI_API_KEY?.substring(0, 5) + '...');
+    // It's crucial to ensure the API key is loaded. If not, this is a server config issue.
+    if (!OPENAI_API_KEY) {
+      console.error("FATAL: OPENAI_API_KEY is not loaded in the environment!");
+    }
     return res.status(500).json({ 
       error: 'Recipe search service configuration error. Please check server logs and API key format.' 
     });
@@ -47,7 +94,8 @@ Please format the response with the following sections:
 `;
 
   try {
-    console.log(`🔍 Searching online for recipes with: "${ingredients.join(', ')}"`);
+    console.log(`[API /search-recipes] 🔍 Attempting to search OpenAI for recipes with: "${ingredients.join(', ')}"`);
+    console.log(`[API /search-recipes] Using OpenAI API Key starting with: ${OPENAI_API_KEY?.substring(0, 8)}...`);
     
     const response = await axios.post(
       OPENAI_API_URL,
@@ -73,7 +121,7 @@ Please format the response with the following sections:
       return res.status(500).json({ error: 'Received an unexpected response from recipe service.' });
     }
 
-    console.log(`🍲 Recipe found! First 50 chars: "${recipeResponse.substring(0, 50)}..."`);
+    console.log(`[API /search-recipes] 🍲 Recipe found! First 50 chars: "${recipeResponse.substring(0, 50)}..."`);
     
     res.json({ 
       recipe: recipeResponse,
@@ -82,11 +130,13 @@ Please format the response with the following sections:
     });
 
   } catch (error) {
-    console.error('❌ Error with recipe search:', error.message);
+    console.error('❌ [API /search-recipes] Error during recipe search:', error.message);
     
     if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
+      console.error('[API /search-recipes] OpenAI Response Status:', error.response.status);
+      console.error('[API /search-recipes] OpenAI Response Data:', JSON.stringify(error.response.data, null, 2));
+    } else {
+      console.error('[API /search-recipes] No error.response object from OpenAI. Error details:', error);
     }
     
     // Improved error handling with more specific messages
@@ -117,6 +167,15 @@ Please format the response with the following sections:
 
 // POST route to handle AI recipe suggestions - Public route
 router.post('/ask-ai', async (req, res, next) => {
+  console.log(`[API /ask-ai] Received request with body:`, req.body);
+  // Check rate limit (standard request costs 1 token)
+  if (!rateLimiter.canMakeRequest(1)) {
+    console.warn('[API /ask-ai] Blocked by local rate limiter.');
+    return res.status(503).json({ 
+      error: 'AI service is currently experiencing high demand. Please try again in a few moments.' 
+    });
+  }
+
   // Extract prompt from request body - can be direct prompt or ingredients array
   const { prompt, ingredients } = req.body;
   
@@ -132,7 +191,10 @@ router.post('/ask-ai', async (req, res, next) => {
   
   // Validate OpenAI API key before making request
   if (!isValidOpenAIKey(OPENAI_API_KEY)) {
-    console.error('❌ OpenAI API Key is missing or has invalid format.');
+    console.error('❌ [API /ask-ai] OpenAI API Key is missing or has invalid format.');
+    if (!OPENAI_API_KEY) {
+      console.error("FATAL: OPENAI_API_KEY is not loaded in the environment for /ask-ai!");
+    }
     return res.status(500).json({ 
       error: 'AI service configuration error. Please check server logs and API key format.' 
     });
@@ -143,7 +205,8 @@ router.post('/ask-ai', async (req, res, next) => {
                             finalPrompt.toLowerCase().includes('find recipes on the web');
 
   try {
-    console.log(`✉️ Sending prompt to OpenAI: "${finalPrompt.substring(0, 50)}..."`);
+    console.log(`[API /ask-ai] ✉️ Attempting to send prompt to OpenAI: "${finalPrompt.substring(0, 50)}..."`);
+    console.log(`[API /ask-ai] Using OpenAI API Key starting with: ${OPENAI_API_KEY?.substring(0, 8)}...`);
     const response = await axios.post(
       OPENAI_API_URL,
       {
@@ -168,7 +231,7 @@ router.post('/ask-ai', async (req, res, next) => {
         return res.status(500).json({ error: 'Received an unexpected response from AI service.' });
     }
 
-    console.log(`🤖 Received AI response: "${aiResponse.substring(0, 100)}..."`);
+    console.log(`[API /ask-ai] 🤖 Received AI response: "${aiResponse.substring(0, 100)}..."`);
     
     // For compatibility with older frontend code that expects "suggestion" key
     if (ingredients && !prompt) {
@@ -178,11 +241,13 @@ router.post('/ask-ai', async (req, res, next) => {
     }
 
   } catch (error) {
-    console.error('❌ Error with OpenAI API:', error.message);
+    console.error('❌ [API /ask-ai] Error with OpenAI API:', error.message);
     
     if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
+      console.error('[API /ask-ai] OpenAI Response Status:', error.response.status);
+      console.error('[API /ask-ai] OpenAI Response Data:', JSON.stringify(error.response.data, null, 2));
+    } else {
+      console.error('[API /ask-ai] No error.response object from OpenAI. Error details:', error);
     }
     
     // Specific error handling for common OpenAI API issues
