@@ -7,28 +7,6 @@ const router = express.Router();
 // Apply authentication middleware only to routes that need it
 // NOT applying router.use(verifyToken) to all routes anymore
 
-// Public route - Fetch recipes with pagination
-router.get('/', async (req, res, next) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
-
-  try {
-    const [results] = await db.query('SELECT id, name, ingredients, instructions, prep_time, cook_time, servings, thumbnail_url, created_at FROM recipes ORDER BY created_at DESC LIMIT ? OFFSET ?', [limit, offset]);
-    // Optionally, get total count for pagination info
-    const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM recipes');
-    res.json({
-        recipes: results,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page
-    });
-  } catch (err) {
-    console.error('❌ Failed to fetch recipes:', err.message);
-    // Pass the error to the centralized error handler
-    next(err);
-  }
-});
-
 // Public route - Search recipes by ingredient (simple LIKE search)
 router.get('/search', async (req, res, next) => {
   const { ingredient } = req.query;
