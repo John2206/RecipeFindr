@@ -105,6 +105,14 @@
         </div>
     </main>
 
+    <div id="macrosOverlay" class="macros-overlay" style="display:none;">
+        <div class="macros-bubble">
+            <button id="closeMacrosBtn" class="close-macros-btn">&times;</button>
+            <h2>Meal Macros</h2>
+            <div id="macrosContent">No macros available.</div>
+        </div>
+    </div>
+
     <footer>
         <div class="footer-content">
             <div class="footer-section">
@@ -135,6 +143,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Define lastMacrosHtml in a higher scope so all functions can access it
+            let lastMacrosHtml = '';
+
             // Update auth links
             const authLinks = document.getElementById('authLinks');
             if (AuthService.isAuthenticated()) {
@@ -219,18 +230,17 @@
             // Helper function to display the recipe with proper formatting
             function displayRecipe(recipeText) {
                 const recipeContainer = document.getElementById('recipeResult');
-                
-                // Process different parts of the recipe
                 let sections = processRecipeText(recipeText);
-                
+                // Extract macros and show at the top of the recipe card
+                lastMacrosHtml = extractMacros(recipeText);
                 recipeContainer.innerHTML = `
                     <div class="recipe-card modern-recipe">
+                        ${lastMacrosHtml}
                         <div class="recipe-header">
                             <h2>${sections.title || 'Delicious Recipe'}</h2>
                         </div>
                         <div class="recipe-body">
                             ${sections.description ? `<div class="recipe-description">${sections.description}</div>` : ''}
-                            
                             ${sections.ingredients ? `
                                 <div class="recipe-section">
                                     <h3>Ingredients</h3>
@@ -239,7 +249,6 @@
                                     </ul>
                                 </div>
                             ` : ''}
-                            
                             ${sections.instructions ? `
                                 <div class="recipe-section">
                                     <h3>Instructions</h3>
@@ -248,7 +257,6 @@
                                     </ol>
                                 </div>
                             ` : ''}
-                            
                             ${sections.meta ? `
                                 <div class="recipe-meta-info">
                                     ${sections.meta}
@@ -257,13 +265,30 @@
                         </div>
                     </div>
                 `;
-                
                 recipeContainer.style.display = 'block';
-                
-                // Scroll to the results
                 recipeContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Remove any previous macros button
+                let oldBtn = document.getElementById('showMacrosBtn');
+                if (oldBtn) oldBtn.remove();
+                // Add button under the recipe container if macros exist
+                console.log('Macros HTML:', lastMacrosHtml); // DEBUG
+                if (lastMacrosHtml) {
+                    const macrosBtn = document.createElement('button');
+                    macrosBtn.id = 'showMacrosBtn';
+                    macrosBtn.textContent = 'Show Macros';
+                    macrosBtn.onclick = function() {
+                        macrosContent.innerHTML = lastMacrosHtml || 'No macros available.';
+                        macrosOverlay.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    };
+                    // Insert after the recipe container, no styling
+                    recipeContainer.parentNode.insertBefore(macrosBtn, recipeContainer.nextSibling);
+                    console.log('Show Macros button inserted after recipe container.'); // DEBUG
+                } else {
+                    console.log('No macros found in recipe.'); // DEBUG
+                }
             }
-            
+
             // Helper function to process recipe text into structured HTML
             function processRecipeText(text) {
                 const sections = {
@@ -342,6 +367,41 @@
                 return sections;
             }
             
+            // Helper function to extract macros from recipe text
+            function extractMacros(text) {
+                // Try to match all macros on one line
+                const macrosLine = text.match(/(?:Calories|Energy)\s*[:\-]?\s*(\d+)\s*(?:kcal)?[^\n]*[\n,;\|]+.*?Protein\s*[:\-]?\s*(\d+)\s*g?[^\n]*[\n,;\|]+.*?Carbs?\s*[:\-]?\s*(\d+)\s*g?[^\n]*[\n,;\|]+.*?Fat\s*[:\-]?\s*(\d+)\s*g?/i);
+                if (macrosLine) {
+                    return `<div class="macros-info" style="background:#222;padding:10px 20px;margin-bottom:15px;border-radius:8px;max-width:400px;">
+                        <strong>Nutrition:</strong>
+                        <ul style="margin:0;padding-left:18px;">
+                            <li>Calories: ${macrosLine[1]}</li>
+                            <li>Protein: ${macrosLine[2]}g</li>
+                            <li>Carbs: ${macrosLine[3]}g</li>
+                            <li>Fat: ${macrosLine[4]}g</li>
+                        </ul>
+                    </div>`;
+                } else {
+                    // Try to match individual lines
+                    const cal = text.match(/(?:Calories|Energy)\s*[:\-]?\s*(\d+)/i);
+                    const protein = text.match(/Protein\s*[:\-]?\s*(\d+)/i);
+                    const carbs = text.match(/Carbs?\s*[:\-]?\s*(\d+)/i);
+                    const fat = text.match(/Fat\s*[:\-]?\s*(\d+)/i);
+                    if (cal || protein || carbs || fat) {
+                        return `<div class="macros-info" style="background:#222;padding:10px 20px;margin-bottom:15px;border-radius:8px;max-width:400px;">
+                            <strong>Nutrition:</strong>
+                            <ul style="margin:0;padding-left:18px;">
+                                ${cal ? `<li>Calories: ${cal[1]}</li>` : ''}
+                                ${protein ? `<li>Protein: ${protein[1]}g</li>` : ''}
+                                ${carbs ? `<li>Carbs: ${carbs[1]}g</li>` : ''}
+                                ${fat ? `<li>Fat: ${fat[1]}g</li>` : ''}
+                            </ul>
+                        </div>`;
+                    }
+                }
+                return '';
+            }
+
             function showError(message) {
                 const errorElement = document.getElementById('errorMessage');
                 errorElement.innerHTML = `
@@ -353,7 +413,123 @@
                 errorElement.style.display = 'block';
                 errorElement.scrollIntoView({ behavior: 'smooth' });
             }
+
+            // Macros overlay logic (no patching of searchRecipes)
+            const macrosOverlay = document.getElementById('macrosOverlay');
+            const macrosContent = document.getElementById('macrosContent');
+            const closeMacrosBtn = document.getElementById('closeMacrosBtn');
+            closeMacrosBtn.addEventListener('click', function() {
+                macrosOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            });
+            macrosOverlay.addEventListener('click', function(e) {
+                if (e.target === macrosOverlay) {
+                    macrosOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            });
         });
     </script>
+    <style>
+        .macros-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(30,30,30,0.7);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .macros-bubble {
+            background: #232323;
+            color: #fff;
+            border-radius: 18px;
+            padding: 32px 32px 24px 32px;
+            min-width: 320px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            position: relative;
+            text-align: center;
+        }
+        .close-macros-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .close-macros-btn:hover {
+            opacity: 1;
+        }
+        .macros-bubble h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            color: #4caf50;
+        }
+        .btn-macros {
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 6px 18px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: block;
+            width: fit-content;
+        }
+        .btn-macros:hover {
+            background: #4caf50;
+            color: #fff;
+        }
+        .btn-macros-floating {
+            position: absolute;
+            right: 32px;
+            bottom: 32px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 10px 22px;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+            z-index: 20;
+        }
+        .btn-macros-floating:hover {
+            background: #4caf50;
+            color: #fff;
+        }
+        .btn-macros-under {
+            display: block;
+            margin: 24px auto 0 auto;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 10px 22px;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+            z-index: 20;
+        }
+        .btn-macros-under:hover {
+            background: #4caf50;
+            color: #fff;
+        }
+        .recipe-result { position: relative; }
+    </style>
 </body>
 </html>

@@ -141,7 +141,7 @@ const AuthService = (function() {
         // If on login/register page and already authenticated, redirect to a default page
         else if (['login.html', 'register.html'].includes(currentPage) && isAuthenticated()) {
             console.log('Already authenticated, redirecting to home.');
-            window.location.href = 'index.html';
+            window.location.href = 'index.html'; // Remove reference to recipes.html
         }
     });
     
