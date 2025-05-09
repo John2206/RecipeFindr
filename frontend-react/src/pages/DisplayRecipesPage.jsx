@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { APIContext } from '../App';
 
-const baseUrl = 'http://localhost:5000';
+const baseUrl = 'http://localhost:5002';
 
 function DisplayRecipesPage() {
   const { baseUrl: contextBaseUrl } = useContext(APIContext);

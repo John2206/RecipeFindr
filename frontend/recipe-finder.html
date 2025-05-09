@@ -189,7 +189,7 @@
                 document.getElementById('errorMessage').style.display = 'none';
                 
                 try {
-                    const response = await fetch('http://localhost:5002/api/ai/search-recipes', {
+                    const response = await fetch('/api/ai/search-recipes', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -229,6 +229,7 @@
             
             // Helper function to display the recipe with proper formatting
             function displayRecipe(recipeText) {
+                console.log('AI Recipe Text:', recipeText); // DEBUG
                 const recipeContainer = document.getElementById('recipeResult');
                 let sections = processRecipeText(recipeText);
                 // Extract macros and show at the top of the recipe card
@@ -287,6 +288,43 @@
                 } else {
                     console.log('No macros found in recipe.'); // DEBUG
                 }
+                // Add or update the Find Other Recipe button
+                let oldFindBtn = document.getElementById('findOtherRecipeBtn');
+                if (oldFindBtn) oldFindBtn.remove();
+                const findBtn = document.createElement('button');
+                findBtn.id = 'findOtherRecipeBtn';
+                findBtn.textContent = 'Find Other Recipe';
+                findBtn.className = 'btn-find-other';
+                findBtn.onclick = async function() {
+                    // Get the last used ingredients
+                    const ingredientsInput = document.getElementById('ingredients').value;
+                    const cuisine = document.getElementById('cuisine').value;
+                    const dietary = document.getElementById('dietary').value;
+                    const time = document.getElementById('time').value;
+                    if (!ingredientsInput.trim()) return;
+                    const ingredients = ingredientsInput.split(',').map(item => item.trim()).filter(item => item);
+                    // Show loading
+                    recipeContainer.innerHTML = '<div class="loading">🤖 Asking AI to find another recipe...</div>';
+                    try {
+                        const response = await fetch('http://localhost:5002/api/ai/search-recipes', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ingredients,
+                                cuisine,
+                                dietary,
+                                time: parseInt(time),
+                                prompt: `Find a different recipe using these ingredients: ${ingredients.join(', ')}. Do not repeat the previous recipe.`
+                            })
+                        });
+                        if (!response.ok) throw new Error('Failed to get another recipe');
+                        const data = await response.json();
+                        displayRecipe(data.recipe);
+                    } catch (err) {
+                        recipeContainer.innerHTML = `<div class="error-message">${err.message}</div>`;
+                    }
+                };
+                recipeContainer.parentNode.insertBefore(findBtn, recipeContainer.nextSibling.nextSibling);
             }
 
             // Helper function to process recipe text into structured HTML
@@ -369,34 +407,23 @@
             
             // Helper function to extract macros from recipe text
             function extractMacros(text) {
-                // Try to match all macros on one line
-                const macrosLine = text.match(/(?:Calories|Energy)\s*[:\-]?\s*(\d+)\s*(?:kcal)?[^\n]*[\n,;\|]+.*?Protein\s*[:\-]?\s*(\d+)\s*g?[^\n]*[\n,;\|]+.*?Carbs?\s*[:\-]?\s*(\d+)\s*g?[^\n]*[\n,;\|]+.*?Fat\s*[:\-]?\s*(\d+)\s*g?/i);
+                // Try to match all macros on one line (more permissive)
+                const macrosLine = text.match(/(?:Calories|Energy)[^\d]*(\d+)[^\n]*[\n,;\|]+.*?Protein[^\d]*(\d+)[^\n]*[\n,;\|]+.*?Carbs?[^\d]*(\d+)[^\n]*[\n,;\|]+.*?Fat[^\d]*(\d+)/i);
                 if (macrosLine) {
-                    return `<div class="macros-info" style="background:#222;padding:10px 20px;margin-bottom:15px;border-radius:8px;max-width:400px;">
-                        <strong>Nutrition:</strong>
-                        <ul style="margin:0;padding-left:18px;">
-                            <li>Calories: ${macrosLine[1]}</li>
-                            <li>Protein: ${macrosLine[2]}g</li>
-                            <li>Carbs: ${macrosLine[3]}g</li>
-                            <li>Fat: ${macrosLine[4]}g</li>
-                        </ul>
-                    </div>`;
+                    return `<div class="macros-info"><strong>Nutrition:</strong><ul><li>Calories: ${macrosLine[1]}</li><li>Protein: ${macrosLine[2]}g</li><li>Carbs: ${macrosLine[3]}g</li><li>Fat: ${macrosLine[4]}g</li></ul></div>`;
                 } else {
-                    // Try to match individual lines
-                    const cal = text.match(/(?:Calories|Energy)\s*[:\-]?\s*(\d+)/i);
-                    const protein = text.match(/Protein\s*[:\-]?\s*(\d+)/i);
-                    const carbs = text.match(/Carbs?\s*[:\-]?\s*(\d+)/i);
-                    const fat = text.match(/Fat\s*[:\-]?\s*(\d+)/i);
+                    // Try to match individual lines, more flexible
+                    const cal = text.match(/(?:Calories|Energy)[^\d]*(\d+)/i);
+                    const protein = text.match(/Protein[^\d]*(\d+)/i);
+                    const carbs = text.match(/Carbs?[^\d]*(\d+)/i);
+                    const fat = text.match(/Fat[^\d]*(\d+)/i);
                     if (cal || protein || carbs || fat) {
-                        return `<div class="macros-info" style="background:#222;padding:10px 20px;margin-bottom:15px;border-radius:8px;max-width:400px;">
-                            <strong>Nutrition:</strong>
-                            <ul style="margin:0;padding-left:18px;">
-                                ${cal ? `<li>Calories: ${cal[1]}</li>` : ''}
-                                ${protein ? `<li>Protein: ${protein[1]}g</li>` : ''}
-                                ${carbs ? `<li>Carbs: ${carbs[1]}g</li>` : ''}
-                                ${fat ? `<li>Fat: ${fat[1]}g</li>` : ''}
-                            </ul>
-                        </div>`;
+                        return `<div class="macros-info"><strong>Nutrition:</strong><ul>
+                            ${cal ? `<li>Calories: ${cal[1]}</li>` : ''}
+                            ${protein ? `<li>Protein: ${protein[1]}g</li>` : ''}
+                            ${carbs ? `<li>Carbs: ${carbs[1]}g</li>` : ''}
+                            ${fat ? `<li>Fat: ${fat[1]}g</li>` : ''}
+                        </ul></div>`;
                     }
                 }
                 return '';
@@ -530,6 +557,26 @@
             color: #fff;
         }
         .recipe-result { position: relative; }
+        .btn-find-other {
+            display: block;
+            margin: 18px auto 0 auto;
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 10px 28px;
+            font-size: 1.05rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .btn-find-other:hover {
+            background: #388e3c;
+            color: #fff;
+        }
     </style>
 </body>
 </html>

@@ -12,7 +12,7 @@ import RecipesPage from './pages/RecipesPage'; // Import RecipesPage
 import './App.css'; // Keep App specific styles if any, or remove if not needed
 import './index.css'; // Import global styles
 
-export const APIContext = createContext({ baseUrl: 'http://localhost:5000' });
+export const APIContext = createContext({ baseUrl: 'http://localhost:5002' });
 
 function App() {
   return (

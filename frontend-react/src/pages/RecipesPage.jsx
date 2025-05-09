@@ -3,7 +3,7 @@ import { APIContext } from '../App';
 import { Link } from 'react-router-dom';
 
 // Use your context base URL if available, otherwise default
-const baseUrl = 'http://localhost:5000';
+const baseUrl = 'http://localhost:5002';
 
 function RecipesPage() {
   const { baseUrl: contextBaseUrl } = useContext(APIContext);
