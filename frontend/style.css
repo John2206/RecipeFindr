@@ -111,11 +111,7 @@ img:hover {
 /* == 2. LAYOUT STYLES == */
 /* ======================================== */
 /* filepath: c:\Users\PC\Desktop\code\RecipeFindr\frontend\style.css */
-/* ... existing styles ... */
 
-/* ======================================== */
-/* == 2. LAYOUT STYLES == */
-/* ======================================== */
 header { /* Restored Header Styles */
     background: #1f1f1f;
     color: #fff;
@@ -129,12 +125,8 @@ header { /* Restored Header Styles */
 main {
     padding: 40px 20px;
     max-width: 1200px; /* Consistent max-width */
-    /* Keep margin suitable for pages WITH a header or just the icon */
     margin: 40px auto;
 }
-
-/* ... other layout styles ... */
-
 
 /* ======================================== */
 /* == 3. COMPONENT STYLES == */
@@ -356,6 +348,138 @@ button[type="submit"]:hover,
     background: linear-gradient(45deg, #ff9966, #ff5733);
     box-shadow: 0 6px 12px rgba(255, 87, 51, 0.4);
     transform: translateY(-2px);
+}
+
+/* Show Macros Button Style */
+#showMacrosBtn {
+    display: block;
+    margin: 32px auto 0 auto;
+    background: linear-gradient(45deg, #ff5733, #ff9966);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 14px 38px;
+    font-size: 1.08rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px rgba(255, 87, 51, 0.18);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+#showMacrosBtn:hover {
+    background: linear-gradient(45deg, #ff9966, #ff5733);
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+}
+
+/* Find Other Recipe Button Style */
+#findOtherRecipeBtn {
+    display: block;
+    margin: 18px auto 0 auto;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 12px 32px;
+    font-size: 1.05rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+#findOtherRecipeBtn:hover {
+    background: #388e3c;
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+}
+
+/* Macros Info Box Style */
+.macros-info {
+    background: #232323;
+    color: #fff;
+    border-radius: 18px;
+    padding: 18px 28px 12px 28px;
+    margin: 0 auto 18px auto;
+    max-width: 400px;
+    box-shadow: 0 4px 18px rgba(76, 175, 80, 0.08);
+    text-align: left;
+    font-size: 1.08rem;
+}
+
+.macros-info strong {
+    color: #4caf50;
+    font-size: 1.12rem;
+    letter-spacing: 0.2px;
+}
+
+.macros-info ul {
+    margin: 10px 0 0 0;
+    padding-left: 18px;
+}
+
+.macros-info li {
+    margin-bottom: 4px;
+    color: #e0e0e0;
+    font-size: 1.01rem;
+}
+
+/* Macros Overlay Bubble Style */
+.macros-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(30,30,30,0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.macros-bubble {
+    background: #232323;
+    color: #fff;
+    border-radius: 18px;
+    padding: 36px 36px 24px 36px;
+    min-width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    position: relative;
+    text-align: center;
+    animation: popIn 0.25s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.close-macros-btn {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.close-macros-btn:hover {
+    opacity: 1;
+}
+
+.macros-bubble h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    color: #4caf50;
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
 }
 
 /* Camera App Styling - IMPROVED VERSION */
