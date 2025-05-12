@@ -145,6 +145,16 @@ const AuthService = (function() {
         }
     });
     
+    // Attach AuthService to window for global access in all scripts
+    window.AuthService = {
+        login,
+        register,
+        logout,
+        isAuthenticated,
+        getCurrentUser,
+        getAuthHeaders
+    };
+    
     // Public API
     return {
         login,

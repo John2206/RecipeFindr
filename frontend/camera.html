@@ -15,7 +15,7 @@
         <li><a href="camera.html" class="active">Scan Ingredients</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
-        <li><a href="login.html">Login</a></li>
+        <li id="authLinks"></li>
       </ul>
     </nav>
   </header>
@@ -115,6 +115,7 @@
     const scanResults = document.getElementById('scanResults');
     const ingredientsList = document.getElementById('ingredientsList');
     const loadingSpinner = document.getElementById('loadingSpinner');
+    const authLinks = document.getElementById('authLinks');
 
     let stream = null;
 
@@ -184,11 +185,11 @@
         const imageData = canvas.toDataURL('image/jpeg').split(',')[1]; // Remove data:image/jpeg;base64, prefix
         
         // Send the image to the backend API
-        const response = await fetch('/api/predict/predict', { // Updated path
+        const response = await fetch('/api/predict/predict', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            ...AuthService.getAuthHeaders() // Add authentication headers if needed
+            'Content-Type': 'application/json'
+            // Authentication headers are optional now that we disabled auth middleware
           },
           body: JSON.stringify({
             image: imageData
@@ -219,6 +220,20 @@
         ingredientsList.innerHTML = `<li class="error">Error: ${error.message}</li>`;
       }
     });
+
+    // Update auth links in header (show username if logged in, otherwise show login/register)
+    if (window.AuthService && AuthService.isAuthenticated()) {
+      const user = AuthService.getCurrentUser();
+      authLinks.innerHTML = `
+        <span class="user-welcome">Hello, ${user && user.username ? user.username : 'User'}</span>
+        <button onclick="AuthService.logout()" class="btn-logout">Logout</button>
+      `;
+    } else {
+      authLinks.innerHTML = `
+        <a href="login.html" class="auth-btn">Login</a>
+        <a href="register.html" class="auth-btn register">Register</a>
+      `;
+    }
   </script>
 
   <style>
@@ -454,3 +469,4 @@
   </style>
 </body>
 </html>
+``` 
