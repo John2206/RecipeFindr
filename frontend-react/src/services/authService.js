@@ -1,4 +1,4 @@
-// Use VITE_API_BASE_URL or fallback to '/api'
+// Use VITE_API_BASE_URL or fallback to '/api' for relative path
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const loginUser = async (credentials) => {

@@ -2,10 +2,11 @@
 const express = require('express');
 const db = require('../db'); // Correct path to db.js
 const verifyToken = require('../middleware/authMiddleware'); // Import auth middleware
+const { body, validationResult } = require('express-validator'); // Import express-validator
 const router = express.Router();
 
-// Apply authentication middleware only to routes that need it
-// NOT applying router.use(verifyToken) to all routes anymore
+// Protect all recipe routes
+router.use(verifyToken);
 
 // Public route - Search recipes by ingredient (simple LIKE search)
 router.get('/search', async (req, res, next) => {
@@ -32,19 +33,22 @@ router.get('/search', async (req, res, next) => {
 });
 
 // Protected route - Add a new recipe (associated with logged-in user)
-router.post('/', verifyToken, async (req, res, next) => {
+router.post('/', [
+  body('name').isString().isLength({ min: 2, max: 100 }),
+  body('ingredients').isString().isLength({ min: 2 }),
+  body('instructions').isString().isLength({ min: 2 }),
+  body('prep_time').optional().isNumeric(),
+  body('cook_time').optional().isNumeric(),
+  body('servings').optional().isNumeric(),
+  body('thumbnail_url').optional().isURL()
+], async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: 'Invalid input', details: errors.array() });
+  }
+
   const { name, ingredients, instructions, prep_time, cook_time, servings, thumbnail_url } = req.body;
   const userId = req.user.id; // Get user ID from authenticated request
-
-  // Basic Validation
-  if (!name || !ingredients || !instructions) {
-    return res.status(400).json({ error: 'Missing required fields: name, ingredients, instructions' });
-  }
-  if (typeof name !== 'string' || typeof ingredients !== 'string' || typeof instructions !== 'string') {
-      return res.status(400).json({ error: 'Invalid data types for name, ingredients, or instructions' });
-  }
-  // TODO: Add more robust validation here using a library like express-validator
-  // e.g., check lengths, numeric types, URL format
 
   try {
     const [result] = await db.query(
@@ -60,7 +64,7 @@ router.post('/', verifyToken, async (req, res, next) => {
 });
 
 // Protected route - Delete a recipe (ensure user owns the recipe or is admin)
-router.delete('/:id', verifyToken, async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.id;
 

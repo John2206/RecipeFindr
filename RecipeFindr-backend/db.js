@@ -10,19 +10,19 @@ const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-}).promise(); // Use promise-based interface for async/await
+});
 
-// Test connection (optional but recommended)
-db.getConnection()
-  .then(connection => {
-    console.log('✅ Connected to the database.');
+// Test connection and handle errors
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error('❌ Unable to connect to MySQL. Is the database running?');
+    console.error(err.message);
+    process.exit(1); // Exit if DB connection fails on start
+  } else {
+    console.log('✅ Connected to MySQL database.');
     connection.release();
-  })
-  .catch(err => {
-    console.error('❌ Database connection failed:', err.message);
-    // process.exit(1); // Exit if DB connection fails on start
-  });
+  }
+});
 
-
-module.exports = db;
+module.exports = db.promise();
 
