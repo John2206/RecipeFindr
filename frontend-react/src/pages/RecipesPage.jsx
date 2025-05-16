@@ -192,7 +192,7 @@ function RecipesPage() {
                       value={time}
                       onChange={e => setTime(e.target.value)}
                     />
-                    <span id="timeDisplay">{time}</span> minutes
+                    <span> minutes</span>
                   </div>
                 </div>
               </div>
