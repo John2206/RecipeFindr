@@ -100,8 +100,17 @@ Please format the response with the following sections:
     const response = await axios.post(
       AI_SERVICE_API_URL,
       {
-        model: 'openai/gpt-3.5-turbo', // Model for OpenRouter
-        messages: [{ role: 'user', content: prompt }],
+        model: 'openai/gpt-4o', // Use a multimodal model for image analysis
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              // If you want to support image analysis, add an image_url object here
+              // { type: 'image_url', image_url: { url: imageUrl } }
+            ]
+          }
+        ],
         max_tokens: 1000, // Increased token limit for more detailed recipes
         temperature: 0.7,
       },
@@ -210,8 +219,17 @@ router.post('/ask-ai', async (req, res, next) => {
     const response = await axios.post(
       AI_SERVICE_API_URL,
       {
-        model: 'openai/gpt-3.5-turbo', // Model for OpenRouter
-        messages: [{ role: 'user', content: finalPrompt }],
+        model: 'openai/gpt-4o', // Use a multimodal model for image analysis
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: finalPrompt },
+              // If you want to support image analysis, add an image_url object here
+              // { type: 'image_url', image_url: { url: imageUrl } }
+            ]
+          }
+        ],
         max_tokens: isRecipeWebSearch ? 800 : 300, // Allow more tokens for web recipe searches
         temperature: isRecipeWebSearch ? 0.8 : 0.7, // Slightly higher creativity for recipes
       },

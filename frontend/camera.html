@@ -181,7 +181,6 @@
       scanResults.style.display = 'block';
       loadingSpinner.style.display = 'flex';
       ingredientsList.innerHTML = '';
-      // Add or update: recipe result container
       let recipeResult = document.getElementById('recipeResult');
       if (!recipeResult) {
         recipeResult = document.createElement('div');
@@ -195,15 +194,13 @@
       try {
         // Get the image data from the canvas
         const imageData = canvas.toDataURL('image/jpeg').split(',')[1]; // Remove data:image/jpeg;base64, prefix
-        // Send the image to the backend API
-        const response = await fetch('/api/predict/predict', {
+        // Send the image to the OpenRouter AI backend endpoint
+        const response = await fetch('/api/openrouter/analyze-image', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            image: imageData
-          })
+          body: JSON.stringify({ imageBase64: imageData })
         });
 
         if (!response.ok) {
@@ -214,30 +211,15 @@
         // Parse the API response
         const result = await response.json();
         loadingSpinner.style.display = 'none';
-        // Display the detected ingredients
-        if (result.ingredients && result.ingredients.length > 0) {
-          ingredientsList.innerHTML = result.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('');
-          // --- NEW: Fetch recipe from AI using detected ingredients ---
-          recipeResult.innerHTML = '<p>Finding a recipe...</p>';
-          try {
-            const aiResponse = await fetch('/api/ai/search-recipes', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ingredients: result.ingredients })
-            });
-            if (!aiResponse.ok) {
-              const aiError = await aiResponse.json();
-              throw new Error(aiError.error || `AI error: ${aiResponse.status}`);
-            }
-            const aiData = await aiResponse.json();
-            recipeResult.innerHTML = `<h3>Suggested Recipe:</h3><div class='recipe-ai'>${aiData.recipe ? aiData.recipe.replace(/\n/g, '<br>') : 'No recipe found.'}</div>`;
-          } catch (aiError) {
-            recipeResult.innerHTML = `<span class='error'>Error fetching recipe: ${aiError.message}</span>`;
-          }
+        // Display the AI's result (raw text for now)
+        let aiText = '';
+        if (result && result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content) {
+          aiText = result.choices[0].message.content;
         } else {
-          ingredientsList.innerHTML = '<li class="no-results">No ingredients detected. Try a clearer photo.</li>';
-          recipeResult.innerHTML = '';
+          aiText = 'No result from AI.';
         }
+        ingredientsList.innerHTML = `<li>${aiText.replace(/\n/g, '<br>')}</li>`;
+        recipeResult.innerHTML = '';
       } catch (error) {
         console.error('Error scanning photo:', error);
         loadingSpinner.style.display = 'none';
