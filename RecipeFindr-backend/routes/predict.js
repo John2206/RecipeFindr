@@ -39,6 +39,10 @@ router.post('/predict', async (req, res, next) => { // Added next for error hand
       console.error('❌ Model did not return a valid ingredients array:', result);
       return res.status(500).json({ error: 'Prediction failed: Model did not return valid ingredients.' });
     }
+    if (result.length === 0) {
+      // No real ingredients detected
+      return res.status(400).json({ error: 'No real ingredients detected. Please try a clearer photo.' });
+    }
     console.log('✅ Prediction successful:', result);
     return res.json({ ingredients: result }); // Return as { ingredients: [...] }
   } catch (error) {

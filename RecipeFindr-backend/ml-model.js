@@ -197,15 +197,14 @@ async function predict(base64Image) {
         
         // If we didn't detect any food items, return some generic ingredients
         if (detectedIngredients.length === 0 || detectedIngredients.every(item => item === "Food item")) {
-            console.log('⚠️ No food ingredients detected, using fallback ingredients');
-            return ['Tomato', 'Onion', 'Garlic', 'Olive Oil', 'Salt'];
+            console.log('⚠️ No food ingredients detected, returning empty array');
+            return [];
         }
-        
         return detectedIngredients;
     } catch (error) {
         console.error('❌ Error during prediction:', error);
-        // Return fallback ingredients in case of error
-        return ['Tomato', 'Onion', 'Garlic', 'Olive Oil', 'Salt'];
+        // Return empty array in case of error
+        return [];
     }
 }
 

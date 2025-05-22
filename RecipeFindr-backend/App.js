@@ -6,6 +6,7 @@ const recipesRouter = require('./routes/recipes');
 const authRouter = require('./routes/auth'); // Move auth.js to routes folder
 const aiRouter = require('./routes/ai'); // Assuming AI routes will be moved
 const predictRouter = require('./routes/predict'); // Assuming predict routes will be moved
+const openrouterRouter = require('./routes/openrouter'); // Register OpenRouter API endpoints
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/recipes', recipesRouter); // Prefix API routes
 app.use('/api/auth', authRouter);     // Prefix API routes
 app.use('/api/ai', aiRouter);         // Changed prefix to /api/ai (handles /api/ai/ask-ai)
 app.use('/api/predict', predictRouter); // Changed prefix to /api/predict (handles /api/predict/predict)
+app.use('/api/openrouter', openrouterRouter); // Register OpenRouter API endpoints
 
 // Route for serving the frontend index.html
 app.get('/', (req, res) => {
