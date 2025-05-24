@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 
-function ContactPage() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+const ContactPage: React.FC = () => {
+  const [form, setForm] = useState<{ name: string; email: string; message: string }>({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitted(true);
     // You can add actual submission logic here if needed
@@ -33,18 +33,18 @@ function ContactPage() {
             </div>
             <div className="form-group">
               <label htmlFor="message">Message</label>
-              <textarea id="message" name="message" rows="5" required value={form.message} onChange={handleChange}></textarea>
+              <textarea id="message" name="message" rows={5} required value={form.message} onChange={handleChange}></textarea>
             </div>
             <button type="submit" className="submit-btn">Send Message</button>
           </form>
         )}
         <div className="contact-info">
-          <p>Created by <strong style={{ color: '#ff5733' }}>Gjergj Brestovci</strong> and <strong style={{ color: '#ff5733' }}>Jonathan Löscher</strong></p>
+          <p>Created by <strong style={{ color: '#ff5733' }}>Gjergj Brestovci</strong> and <strong style={{ color: '#ff5733' }}>Jonathan Lö­scher</strong></p>
           <p>Email: contact@recipefindr.com</p>
         </div>
       </section>
     </main>
   );
-}
+};
 
 export default ContactPage;

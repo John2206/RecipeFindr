@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import authService from '../services/authService';
+import { registerUser } from '../services/authService';
 
 function RegisterPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ function RegisterPage() {
     }
     setLoading(true);
     try {
-      const result = await authService.register(username, password);
+      const result = await registerUser({ email, password });
       alert(result.message || 'Registration successful! Please log in.');
       navigate('/login');
     } catch (err) {
@@ -34,14 +34,14 @@ function RegisterPage() {
       <h1>Create Account</h1>
       <form id="registerForm" onSubmit={handleRegister}>
         <div className="form-group">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="email">Email</label>
           <input
-            type="text"
-            id="username"
-            name="username"
+            type="email"
+            id="email"
+            name="email"
             required
-            value={username}
-            onChange={e => setUsername(e.target.value)}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             disabled={loading}
           />
         </div>

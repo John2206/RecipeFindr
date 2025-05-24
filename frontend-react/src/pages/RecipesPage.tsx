@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState, useContext, useRef, ChangeEvent, FormEvent } from 'react';
 import { APIContext } from '../App';
 import { Link } from 'react-router-dom';
 
@@ -11,7 +11,7 @@ const dietaryOptions = [
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
-function RecipesPage() {
+const RecipesPage: React.FC = () => {
   const { baseUrl: contextBaseUrl } = useContext(APIContext);
   const [ingredientsInput, setIngredientsInput] = useState('');
   const [cuisine, setCuisine] = useState('');
@@ -25,7 +25,7 @@ function RecipesPage() {
   const [showFindOther, setShowFindOther] = useState(false);
   const lastRecipeText = useRef('');
 
-  const handleFormSubmit = async (e) => {
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setRecipeResult('');
@@ -45,7 +45,7 @@ function RecipesPage() {
           ingredients,
           cuisine,
           dietary,
-          time: parseInt(time)
+          time: parseInt(time as any)
         })
       });
       if (!response.ok) {
@@ -63,7 +63,7 @@ function RecipesPage() {
       setRecipeResult(formatRecipeCard(data.recipe));
       setMacrosHtml(extractMacros(data.recipe));
       setShowFindOther(true);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || 'Something went wrong while searching for recipes');
     } finally {
       setIsLoading(false);
@@ -83,7 +83,7 @@ function RecipesPage() {
           ingredients,
           cuisine,
           dietary,
-          time: parseInt(time),
+          time: parseInt(time as any),
           prompt: `Find a different recipe using these ingredients: ${ingredients.join(', ')}. Do not repeat the previous recipe.`
         })
       });
@@ -92,31 +92,28 @@ function RecipesPage() {
       lastRecipeText.current = data.recipe;
       setRecipeResult(formatRecipeCard(data.recipe));
       setMacrosHtml(extractMacros(data.recipe));
-    } catch (err) {
-      setRecipeResult(`<div class="error-message">${err.message}</div>`);
+    } catch (err: any) {
+      setRecipeResult(`<div class='error-message'>${err.message}</div>`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  function formatRecipeCard(recipeText) {
-    // This is a simplified version; you can expand it to match the vanilla logic
-    return `<div class="recipe-card modern-recipe"><div class="recipe-header"><h2>Recipe</h2></div><div class="recipe-body"><pre>${recipeText}</pre></div></div>`;
+  function formatRecipeCard(recipeText: string) {
+    return `<div class='recipe-card modern-recipe'><div class='recipe-header'><h2>Recipe</h2></div><div class='recipe-body'><pre>${recipeText}</pre></div></div>`;
   }
 
-  function extractMacros(text) {
-    // Try to match all macros on one line (more permissive)
+  function extractMacros(text: string) {
     const macrosLine = text.match(/(?:Calories|Energy)[^\d]*(\d+)[^\n]*[\n,;\|]+.*?Protein[^\d]*(\d+)[^\n]*[\n,;\|]+.*?Carbs?[^\d]*(\d+)[^\n]*[\n,;\|]+.*?Fat[^\d]*(\d+)/i);
     if (macrosLine) {
-      return `<div class="macros-info"><strong>Nutrition:</strong><ul><li>Calories: ${macrosLine[1]}</li><li>Protein: ${macrosLine[2]}g</li><li>Carbs: ${macrosLine[3]}g</li><li>Fat: ${macrosLine[4]}g</li></ul></div>`;
+      return `<div class='macros-info'><strong>Nutrition:</strong><ul><li>Calories: ${macrosLine[1]}</li><li>Protein: ${macrosLine[2]}g</li><li>Carbs: ${macrosLine[3]}g</li><li>Fat: ${macrosLine[4]}g</li></ul></div>`;
     } else {
-      // Try to match individual lines, more flexible
       const cal = text.match(/(?:Calories|Energy)[^\d]*(\d+)/i);
       const protein = text.match(/Protein[^\d]*(\d+)/i);
       const carbs = text.match(/Carbs?[^\d]*(\d+)/i);
       const fat = text.match(/Fat[^\d]*(\d+)/i);
       if (cal || protein || carbs || fat) {
-        return `<div class="macros-info"><strong>Nutrition:</strong><ul>
+        return `<div class='macros-info'><strong>Nutrition:</strong><ul>
           ${cal ? `<li>Calories: ${cal[1]}</li>` : ''}
           ${protein ? `<li>Protein: ${protein[1]}g</li>` : ''}
           ${carbs ? `<li>Carbs: ${carbs[1]}g</li>` : ''}
@@ -179,8 +176,8 @@ function RecipesPage() {
                     min="5"
                     max="120"
                     value={time}
-                    onChange={e => setTime(e.target.value)}
-                    onInput={e => setTime(e.target.value)}
+                    onChange={e => setTime(Number(e.target.value))}
+                    onInput={e => setTime(Number((e.target as HTMLInputElement).value))}
                   />
                   <div className="time-display">
                     <input
@@ -190,7 +187,7 @@ function RecipesPage() {
                       min="5"
                       max="120"
                       value={time}
-                      onChange={e => setTime(e.target.value)}
+                      onChange={e => setTime(Number(e.target.value))}
                     />
                     <span> minutes</span>
                   </div>
@@ -224,7 +221,7 @@ function RecipesPage() {
       </div>
       {/* Macros Overlay */}
       {macrosHtml && (
-        <div id="macrosOverlay" className="macros-overlay" style={{ display: showMacros ? 'flex' : 'none' }} onClick={e => { if (e.target.id === 'macrosOverlay') setShowMacros(false); }}>
+        <div id="macrosOverlay" className="macros-overlay" style={{ display: showMacros ? 'flex' : 'none' }} onClick={e => { if ((e.target as HTMLElement).id === 'macrosOverlay') setShowMacros(false); }}>
           <div className="macros-bubble">
             <button id="closeMacrosBtn" className="close-macros-btn" onClick={() => setShowMacros(false)}>&times;</button>
             <h2>Meal Macros</h2>
@@ -239,6 +236,6 @@ function RecipesPage() {
       )}
     </main>
   );
-}
+};
 
 export default RecipesPage;

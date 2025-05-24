@@ -3,7 +3,7 @@ import { loginUser } from '../services/authService';
 import { Link, useNavigate } from 'react-router-dom';
 
 function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,7 +14,7 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await loginUser(username, password);
+      await loginUser({ email, password });
       navigate('/');
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -28,14 +28,14 @@ function LoginPage() {
       <h1>Login</h1>
       <form id="loginForm" onSubmit={handleLogin}>
         <div className="form-group">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="email">Email</label>
           <input
-            type="text"
-            id="username"
-            name="username"
+            type="email"
+            id="email"
+            name="email"
             required
-            value={username}
-            onChange={e => setUsername(e.target.value)}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             disabled={loading}
           />
         </div>
