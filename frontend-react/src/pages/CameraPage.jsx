@@ -110,39 +110,39 @@ function CameraPage() {
 
   return (
     <main>
-      <section className="camera-page">
-        <h1 className="text-center">Scan Ingredients</h1>
-        <p className="camera-description text-center">Take a picture of your ingredients to find matching recipes.</p>
-        <div className="camera-controls-center">
-          <button id="openCameraBtn" className="camera-btn" onClick={openCamera}>
-            <span className="camera-icon">📷</span>
+      <section className="max-w-2xl mx-auto py-10 px-4">
+        <h1 className="text-center text-3xl font-bold text-primary mb-2">Scan Ingredients</h1>
+        <p className="text-center text-lg text-gray-400 mb-6">Take a picture of your ingredients to find matching recipes.</p>
+        <div className="flex justify-center mb-8">
+          <button id="openCameraBtn" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full shadow hover:bg-primary-light transition font-semibold text-lg" onClick={openCamera}>
+            <span className="text-2xl">📷</span>
             Open Camera
           </button>
         </div>
         {showPreview && (
-          <div className="preview-container" id="previewContainer">
-            <h2 className="text-center">Captured Image</h2>
-            <div className="preview-wrapper">
-              <img id="preview" src={capturedImage} alt="Captured image" style={{ display: 'block' }} />
-              <div className="preview-actions">
-                <button id="scanPhotoBtn" className="scan-btn" onClick={scanPhoto} disabled={isAnalyzing}>
-                  <span className="scan-icon">🔍</span>
+          <div className="bg-gray-900 rounded-xl shadow-lg p-6 mb-8">
+            <h2 className="text-center text-2xl font-semibold text-primary mb-4">Captured Image</h2>
+            <div className="flex flex-col items-center">
+              <img id="preview" src={capturedImage} alt="Captured image" className="rounded-lg mb-4 max-w-full max-h-96 border border-gray-700" />
+              <div className="flex gap-4 mb-4">
+                <button id="scanPhotoBtn" className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-full shadow hover:bg-green-700 transition font-medium disabled:opacity-60" onClick={scanPhoto} disabled={isAnalyzing}>
+                  <span className="text-lg">🔍</span>
                   {isAnalyzing ? 'Analyzing...' : 'AI Scan'}
                 </button>
-                <button id="removePhotoBtn" className="remove-btn" onClick={removePhoto}>Remove Photo</button>
+                <button id="removePhotoBtn" className="px-5 py-2 bg-red-600 text-white rounded-full shadow hover:bg-red-700 transition font-medium" onClick={removePhoto}>Remove Photo</button>
               </div>
-              <div id="scanResults" className="scan-results" style={{ display: showScanResults ? 'block' : 'none' }}>
-                <h3>Ingredients Detected:</h3>
-                <ul id="ingredientsList">
+              <div id="scanResults" className={showScanResults ? 'block w-full' : 'hidden'}>
+                <h3 className="text-lg font-semibold text-primary mb-2">Ingredients Detected:</h3>
+                <ul id="ingredientsList" className="bg-gray-800 rounded-lg p-4 text-left">
                   {isAnalyzing && (
-                    <div className="loading-spinner" id="loadingSpinner" style={{ display: 'flex' }}>
-                      <div className="spinner"></div>
+                    <div className="flex items-center gap-2 text-green-400 mb-2">
+                      <span className="animate-spin inline-block w-5 h-5 border-2 border-gray-400 border-t-green-500 rounded-full"></span>
                       <p>Analyzing image...</p>
                     </div>
                   )}
-                  {scanError && <li className="error">Error: {scanError}</li>}
+                  {scanError && <li className="text-red-400 italic">Error: {scanError}</li>}
                   {!scanError && !isAnalyzing && detectedIngredients.map((ingredient, idx) => (
-                    <li key={idx} className={ingredient.startsWith('No ingredients') ? 'no-results' : ''}>{ingredient}</li>
+                    <li key={idx} className={ingredient.startsWith('No ingredients') ? 'italic text-yellow-400' : ''}>{ingredient}</li>
                   ))}
                 </ul>
               </div>
@@ -150,23 +150,20 @@ function CameraPage() {
           </div>
         )}
         {showCamera && (
-          <div className="camera-overlay" id="cameraOverlay" style={{ display: 'flex' }}>
-            <div className="camera-container">
-              <button id="closeCameraBtn" className="close-btn" onClick={closeCamera}>×</button>
-              <div className="camera-status">
-                <div className="camera-mode">PHOTO</div>
-              </div>
-              <div className="video-container" id="videoContainer">
-                <video id="video" ref={videoRef} autoPlay playsInline></video>
-                <div className="camera-frame"></div>
-                <div className="camera-grid"><div></div></div>
-                <canvas id="canvas" ref={canvasRef} style={{ display: 'none' }}></canvas>
-                <button id="captureBtn" className="capture-btn" onClick={capturePhoto}></button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+            <div className="relative bg-gray-900 rounded-xl shadow-lg p-6 flex flex-col items-center">
+              <button id="closeCameraBtn" className="absolute top-2 right-2 text-2xl text-gray-400 hover:text-red-500 transition" onClick={closeCamera}>&times;</button>
+              <div className="mb-2 text-xs text-gray-400 tracking-widest">PHOTO</div>
+              <div className="relative flex flex-col items-center">
+                <video id="video" ref={videoRef} autoPlay playsInline className="rounded-lg border border-gray-700 max-w-full max-h-96 bg-black" />
+                <div className="absolute inset-0 border-4 border-primary rounded-lg pointer-events-none"></div>
+                <canvas id="canvas" ref={canvasRef} className="hidden" />
+                <button id="captureBtn" className="absolute bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 bg-white border-4 border-primary rounded-full shadow-lg hover:scale-105 transition" onClick={capturePhoto}></button>
               </div>
             </div>
           </div>
         )}
-        <div id="flashEffect" className={`flash${flashActive ? ' active' : ''}`}></div>
+        <div id="flashEffect" className={`fixed inset-0 pointer-events-none transition-opacity duration-300 ${flashActive ? 'bg-white opacity-80' : 'opacity-0'}`}></div>
       </section>
     </main>
   );
