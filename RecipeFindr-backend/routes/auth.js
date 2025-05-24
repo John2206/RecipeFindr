@@ -8,39 +8,38 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET; // Reads JWT_SECRET from .env
 const SALT_ROUNDS = 12; // Define salt rounds
 
-// Register User - Modified to work without email column
+// Register User - Now uses email authentication
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-  // We'll ignore email in the request since the database doesn't have that column
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password required' });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password required' });
   }
 
   try {
-    // Check if username exists - removed email check
-    const [existingUsers] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    // Check if email exists
+    const [existingUsers] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUsers.length > 0) {
-      return res.status(400).json({ message: 'Username already exists' });
+      return res.status(400).json({ message: 'Email already exists' });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Insert user without email
+    // Insert user with email
     const [result] = await db.query(
-      'INSERT INTO users (username, password) VALUES (?, ?)',
-      [username, hashedPassword]
+      'INSERT INTO users (email, password) VALUES (?, ?)',
+      [email, hashedPassword]
     );
 
     const userId = result.insertId;
 
-    // Generate JWT with longer expiration
-    const token = jwt.sign({ id: userId, username: username }, JWT_SECRET, { expiresIn: '7d' }); // Changed to 7 days
+    // Generate JWT with email
+    const token = jwt.sign({ id: userId, email: email }, JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({ // Use 201 Created status
+    res.status(201).json({
       message: '✅ User registered successfully!',
       token: token,
-      user: { id: userId, username: username } // Return basic user info without email
+      user: { id: userId, email: email }
     });
 
   } catch (err) {
@@ -49,17 +48,16 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login User - Modified to work without email column
+// Login User - Now uses email authentication
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  // We'll ignore email in the request since the database doesn't have that column
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password required' });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password required' });
   }
 
   try {
-    // Find user by username only
-    const [results] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    // Find user by email
+    const [results] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (results.length === 0) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -72,17 +70,17 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT with longer expiration
+    // Generate JWT with email
     const token = jwt.sign(
-      { id: user.id, username: user.username }, 
-      JWT_SECRET, 
-      { expiresIn: '7d' } // Extending token validity to 7 days
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
     );
 
     res.json({
       message: '✅ Login successful!',
       token: token,
-      user: { id: user.id, username: user.username } // Return user info without email
+      user: { id: user.id, email: user.email }
     });
 
   } catch (err) {

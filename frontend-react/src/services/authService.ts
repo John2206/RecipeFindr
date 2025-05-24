@@ -1,12 +1,12 @@
 // Define interfaces for auth data types
 export interface Credentials {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface UserData {
   id: number;
-  username: string;
+  email: string;
 }
 
 export interface AuthResponse {
@@ -21,129 +21,94 @@ export interface RegisterData extends Credentials {
 
 // Use VITE_API_BASE_URL or fallback to '/api' for relative path
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-const AUTH_ENDPOINTS = {
-  login: `${API_BASE}/auth/login`,
-  register: `${API_BASE}/auth/register`
-};
 
-// Check if the token is valid and not expired
-export const isTokenValid = (token: string | null): boolean => {
+// Token handling utilities
+const getAuthToken = (): string | null => localStorage.getItem('authToken');
+const setAuthToken = (token: string): void => localStorage.setItem('authToken', token);
+const removeAuthToken = (): void => localStorage.removeItem('authToken');
+
+// User data handling utilities
+const getUserData = (): any => {
+  const userStr = localStorage.getItem('userData');
+  return userStr ? JSON.parse(userStr) : null;
+};
+const setUserData = (user: any): void => localStorage.setItem('userData', JSON.stringify(user));
+const removeUserData = (): void => localStorage.removeItem('userData');
+
+// Check if user is authenticated
+const isAuthenticated = (): boolean => {
+  const token = getAuthToken();
   if (!token) return false;
-  
   try {
-    // Basic check if the token has at least 3 parts
-    const parts = token.split('.');
-    if (parts.length !== 3) return false;
-    
-    // The JWT payload is encoded in base64, decode and check expiration
-    const payload = JSON.parse(atob(parts[1]));
-    const expiryTime = payload.exp * 1000; // Convert to milliseconds
-    return Date.now() < expiryTime;
-  } catch (error) {
-    console.error('Error validating token:', error);
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return Date.now() < payload.exp * 1000;
+  } catch (e) {
     return false;
   }
 };
 
-export const loginUser = async (credentials: Credentials): Promise<AuthResponse> => {
-  try {
-    console.log('Login attempt with username:', credentials.username);
-    
-    const response = await fetch(AUTH_ENDPOINTS.login, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: `Login failed with status: ${response.status}` }));
-      throw new Error(errorData.message || `Login failed with status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Save authentication data
-    localStorage.setItem('authToken', data.token);
-    localStorage.setItem('userData', JSON.stringify(data.user));
-    
-    return data;
-  } catch (error) {
-    console.error('Login error:', error);
-    throw error;
+// Login user
+const loginUser = async (credentials: { email: string; password: string }): Promise<any> => {
+  console.log('Login request payload:', JSON.stringify(credentials));
+  const response = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(credentials),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Login failed');
   }
+  setAuthToken(data.token);
+  setUserData(data.user);
+  return data;
 };
 
-export const registerUser = async (userData: RegisterData): Promise<AuthResponse> => {
-  try {
-    const { confirmPassword, ...registrationData } = userData;
-    
-    console.log('Register request payload:', JSON.stringify(registrationData));
-    
-    const response = await fetch(AUTH_ENDPOINTS.register, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(registrationData),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: `Registration failed with status: ${response.status}` }));
-      throw new Error(errorData.message || `Registration failed with status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Save authentication data
-    localStorage.setItem('authToken', data.token);
-    localStorage.setItem('userData', JSON.stringify(data.user));
-    
-    return data;
-  } catch (error) {
-    console.error('Registration error:', error);
-    throw error;
+// Register user
+const registerUser = async (userData: { email: string; password: string }): Promise<any> => {
+  console.log('Register request payload:', JSON.stringify(userData));
+  const response = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(userData),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Registration failed');
   }
-};
-
-// Helper function to get auth token from localStorage
-export const getToken = (): string | null => {
-  return localStorage.getItem('authToken');
-};
-
-// Helper function to get authenticated user from localStorage
-export const getUser = (): UserData | null => {
-  const userStr = localStorage.getItem('userData');
-  return userStr ? JSON.parse(userStr) : null;
-};
-
-// Helper function to check if user is authenticated
-export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  return isTokenValid(token);
-};
-
-// Helper function to get authentication headers for API requests
-export const getAuthHeaders = (): Record<string, string> => {
-  if (!isAuthenticated()) {
-    return {}; // Return empty object if not authenticated
+  if (data.token && data.user) {
+    setAuthToken(data.token);
+    setUserData(data.user);
   }
-  
-  const token = getToken();
-  return {
-    'Authorization': `Bearer ${token}`
-  };
+  return data;
 };
 
-// Helper function to clear authentication data
-export const clearAuthData = (): void => {
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('userData');
+// Logout user
+const logout = (): void => {
+  removeAuthToken();
+  removeUserData();
 };
 
-// Logout function
-export const logout = (): void => {
-  clearAuthData();
-  // Navigate to home or login page can be handled by the component
+// Get user helper
+const getUser = (): any => {
+  return getUserData();
+};
+
+// Get auth headers helper
+const getAuthHeaders = (): Record<string, string> => {
+  const token = getAuthToken();
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+export {
+  loginUser,
+  registerUser,
+  logout,
+  isAuthenticated,
+  getUser,
+  getAuthHeaders
 };

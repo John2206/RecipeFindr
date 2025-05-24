@@ -7,15 +7,15 @@ import {
 // Define types for user and context
 export interface User {
   id: number;
-  username: string;
+  email: string;
 }
 
 interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -66,9 +66,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
-      const response = await loginUser({ username, password });
+      const response = await loginUser({ email, password });
       setCurrentUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {
@@ -77,11 +77,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Register function - Updated to ensure proper JSON formatting
-  const register = async (username: string, password: string): Promise<void> => {
+  // Register function
+  const register = async (email: string, password: string): Promise<void> => {
     try {
-      console.log('Attempting registration with:', { username, password: '***' });
-      const response = await registerUser({ username, password });
+      const response = await registerUser({ email, password });
       setCurrentUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {

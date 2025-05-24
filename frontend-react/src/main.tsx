@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx' // Explicitly use TypeScript version
 import './index.css'
 import './App.css'
-import '../../frontend/style.css' // Import the original styling from vanilla frontend
 
 
 const rootElement = document.getElementById('root');

@@ -78,7 +78,7 @@ const Navbar: React.FC = () => {
         
         {isAuthenticated ? (
           <>
-            <span className="username">Hello, {currentUser?.username || 'User'}</span>
+            <span className="username">Hello, {(currentUser as { username?: string })?.username || 'User'}</span>
             <button onClick={handleLogout} className="logout-button">Logout</button>
           </>
         ) : (
