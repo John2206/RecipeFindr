@@ -12,14 +12,14 @@ interface ImportMeta {
 import React, { createContext } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar.tsx'; 
-import Footer from './components/Footer.jsx';
-import HomePage from './pages/HomePage.jsx';
+import Footer from './components/Footer';
+import HomePage from './pages/HomePage.tsx';
 import AboutPage from './pages/AboutPage.tsx';
 import CameraPage from './pages/CameraPage.tsx';
-import ContactPage from './pages/ContactPage.jsx';
-import LoginPage from './pages/LoginPage.tsx'; // Use TypeScript version
-import RegisterPage from './pages/RegisterPage.tsx'; // Add RegisterPage import with extension
-import RecipesPage from './pages/RecipesPage.jsx';
+import ContactPage from './pages/ContactPage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
+import RegisterPage from './pages/RegisterPage.tsx';
+import RecipesPage from './pages/RecipesPage.tsx';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
