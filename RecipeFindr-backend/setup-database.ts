@@ -1,15 +1,21 @@
-// setup-database.js - Database setup script
-const mysql = require('mysql2');
-require('dotenv').config();
+// setup-database.ts - Database setup script
+import mysql from 'mysql2';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+interface DatabaseConnection extends mysql.Connection {
+  promise(): any;
+}
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST || '127.0.0.1',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   multipleStatements: true
-});
+}) as DatabaseConnection;
 
-const setupDatabase = async () => {
+const setupDatabase = async (): Promise<void> => {
   try {
     console.log('🔧 Setting up database...');
     
@@ -69,7 +75,7 @@ const setupDatabase = async () => {
     
     console.log('🎉 Database setup completed successfully!');
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Database setup failed:', error);
     process.exit(1);
   } finally {
