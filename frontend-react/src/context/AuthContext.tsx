@@ -1,21 +1,19 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import { 
   loginUser, registerUser, logout as logoutService, 
-  isAuthenticated as checkAuth, getUser as getUserData
+  isAuthenticated as checkAuth, getUser as getUserData,
+  UserData
 } from '../services/authService';
 
-// Define types for user and context
-export interface User {
-  id: number;
-  email: string;
-}
+// Use UserData interface from auth service
+export interface User extends UserData {}
 
 interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -66,9 +64,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (identifier: string, password: string): Promise<void> => {
     try {
-      const response = await loginUser({ email, password });
+      const response = await loginUser({ identifier, password });
       setCurrentUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {
@@ -78,9 +76,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Register function
-  const register = async (email: string, password: string): Promise<void> => {
+  const register = async (username: string, email: string, password: string): Promise<void> => {
     try {
-      const response = await registerUser({ email, password });
+      const response = await registerUser({ username, email, password });
       setCurrentUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {

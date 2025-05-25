@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState<string>('');
+  const [identifier, setIdentifier] = useState<string>(''); // Can be username or email
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
     
     try {
       // Use the login function from AuthContext
-      await login(email, password);
+      await login(identifier, password);
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -31,14 +31,15 @@ const LoginPage: React.FC = () => {
       <h1>Login</h1>
       <form id="loginForm" onSubmit={handleLogin}>
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="identifier">Username or Email</label>
           <input
-            type="email"
-            id="email"
-            name="email"
+            type="text"
+            id="identifier"
+            name="identifier"
+            placeholder="Enter your username or email"
             required
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            value={identifier}
+            onChange={e => setIdentifier(e.target.value)}
             disabled={loading}
           />
         </div>

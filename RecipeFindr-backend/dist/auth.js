@@ -15,14 +15,19 @@ const SALT_ROUNDS = 12; // Define salt rounds
 // @ts-ignore - Express router type conflict resolution
 router.post('/register', async (req, res) => {
     const { username, password, email } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password required' });
+    if (!username || !password || !email) {
+        return res.status(400).json({ message: 'Username, email, and password are all required' });
     }
     try {
-        // Check if user exists
-        const [existingUsers] = await db_1.default.query('SELECT * FROM users WHERE username = ?', [username]);
-        if (existingUsers.length > 0) {
+        // Check if username exists
+        const [existingUsersByUsername] = await db_1.default.query('SELECT * FROM users WHERE username = ?', [username]);
+        if (existingUsersByUsername.length > 0) {
             return res.status(400).json({ message: 'Username already exists' });
+        }
+        // Check if email exists
+        const [existingUsersByEmail] = await db_1.default.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (existingUsersByEmail.length > 0) {
+            return res.status(400).json({ message: 'Email already exists' });
         }
         // Hash password
         const hashedPassword = await bcrypt_1.default.hash(password, SALT_ROUNDS);
@@ -45,24 +50,26 @@ router.post('/register', async (req, res) => {
 // Login User
 // @ts-ignore - Express router type conflict resolution
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password required' });
+    const { username, email, password } = req.body;
+    // User can login with either username or email
+    const loginIdentifier = username || email;
+    if (!loginIdentifier || !password) {
+        return res.status(400).json({ message: 'Username/email and password required' });
     }
     try {
-        // Find user
-        const [results] = await db_1.default.query('SELECT * FROM users WHERE username = ?', [username]);
+        // Find user by username or email
+        const [results] = await db_1.default.query('SELECT * FROM users WHERE username = ? OR email = ?', [loginIdentifier, loginIdentifier]);
         if (results.length === 0) {
-            return res.status(401).json({ message: 'Invalid username or password' });
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
         const user = results[0];
         // Compare password
         const match = await bcrypt_1.default.compare(password, user.password);
         if (!match) {
-            return res.status(401).json({ message: 'Invalid username or password' });
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
-        // Generate JWT
-        const token = jsonwebtoken_1.default.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1d' });
+        // Generate JWT (include both username and email in token for flexibility)
+        const token = jsonwebtoken_1.default.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
         return res.json({
             message: '✅ Login successful!',
             token: token,

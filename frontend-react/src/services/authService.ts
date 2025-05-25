@@ -1,11 +1,25 @@
 // Define interfaces for auth data types
 export interface Credentials {
+  username?: string;  // Optional for login (can use email instead)
   email: string;
   password: string;
 }
 
+export interface LoginCredentials {
+  identifier: string;  // Can be username or email
+  password: string;
+}
+
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword?: string;
+}
+
 export interface UserData {
   id: number;
+  username: string;
   email: string;
 }
 
@@ -15,12 +29,11 @@ export interface AuthResponse {
   message?: string;
 }
 
-export interface RegisterData extends Credentials {
-  confirmPassword?: string;
-}
+// Import centralized configuration
+import { appConfig } from '../config/app';
 
-// Use VITE_API_BASE_URL or fallback to '/api' for relative path
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+// Use centralized API configuration
+const API_BASE = `${appConfig.apiBaseUrl}/api`;
 
 // Token handling utilities
 const getAuthToken = (): string | null => localStorage.getItem('authToken');
@@ -47,15 +60,24 @@ const isAuthenticated = (): boolean => {
   }
 };
 
-// Login user
-const loginUser = async (credentials: { email: string; password: string }): Promise<any> => {
-  console.log('Login request payload:', JSON.stringify(credentials));
+// Login user - accepts either username or email as identifier
+const loginUser = async (credentials: LoginCredentials): Promise<any> => {
+  const loginPayload = {
+    // Determine if identifier is email (contains @) or username
+    ...(credentials.identifier.includes('@') 
+      ? { email: credentials.identifier } 
+      : { username: credentials.identifier }
+    ),
+    password: credentials.password
+  };
+  
+  console.log('Login request payload:', JSON.stringify(loginPayload));
   const response = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(credentials),
+    body: JSON.stringify(loginPayload),
   });
   const data = await response.json();
   if (!response.ok) {
@@ -67,14 +89,20 @@ const loginUser = async (credentials: { email: string; password: string }): Prom
 };
 
 // Register user
-const registerUser = async (userData: { email: string; password: string }): Promise<any> => {
-  console.log('Register request payload:', JSON.stringify(userData));
+const registerUser = async (userData: RegisterData): Promise<any> => {
+  const registerPayload = {
+    username: userData.username,
+    email: userData.email,
+    password: userData.password
+  };
+  
+  console.log('Register request payload:', JSON.stringify(registerPayload));
   const response = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(userData),
+    body: JSON.stringify(registerPayload),
   });
   const data = await response.json();
   if (!response.ok) {

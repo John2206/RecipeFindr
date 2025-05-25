@@ -1,4 +1,5 @@
 import React, { useState, useRef, FormEvent } from 'react';
+import { appConfig } from '../config/app';
 
 const cuisineOptions = [
   '', 'Italian', 'Mexican', 'Indian', 'Chinese', 'Mediterranean', 'Japanese', 'Thai', 'French'
@@ -7,7 +8,7 @@ const dietaryOptions = [
   '', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Keto', 'Low-Carb', 'Dairy-Free'
 ];
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE = `${appConfig.apiBaseUrl}/api`;
 
 const RecipesPage: React.FC = () => {
   const [ingredientsInput, setIngredientsInput] = useState('');
