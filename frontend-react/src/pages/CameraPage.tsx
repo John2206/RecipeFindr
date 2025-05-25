@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, RefObject } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 const CameraPage: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -111,7 +111,80 @@ const CameraPage: React.FC = () => {
 
   return (
     <main>
-      {/* ...existing code... (JSX unchanged) */}
+      <section className="camera-page">
+        <h1>Ingredient Scanner</h1>
+        <p className="camera-description">
+          Use your camera to scan ingredients and get AI-powered recipe suggestions.
+        </p>
+        
+        <div className="camera-controls-center">
+          {!capturedImage && !showCamera && (
+            <button onClick={openCamera} className="camera-btn">
+              <span className="camera-icon">📷</span>
+              Open Camera
+            </button>
+          )}
+        </div>
+
+        {/* Camera Overlay */}
+        {showCamera && (
+          <div className="camera-overlay">
+            <div className="camera-container">
+              <div className="video-container">
+                <video ref={videoRef} autoPlay playsInline muted />
+                <div className="camera-frame"></div>
+                <div className="camera-controls">
+                  <button onClick={closeCamera} className="camera-btn-close">✕</button>
+                  <button onClick={capturePhoto} className="capture-btn">📷</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Photo Preview */}
+        {capturedImage && showPreview && (
+          <div className="preview-container">
+            <h3>Captured Photo</h3>
+            <img src={capturedImage} alt="Captured" className="captured-image" />
+            <div className="preview-controls">
+              <button onClick={scanPhoto} className="btn-primary" disabled={isAnalyzing}>
+                {isAnalyzing ? 'Analyzing...' : 'Scan for Ingredients'}
+              </button>
+              <button onClick={removePhoto} className="btn-secondary">
+                Retake Photo
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Scan Results */}
+        {showScanResults && (
+          <div className="scan-results">
+            <h3>Detected Ingredients</h3>
+            {scanError ? (
+              <div className="error-message">{scanError}</div>
+            ) : (
+              <ul className="ingredients-list">
+                {detectedIngredients.map((ingredient, index) => (
+                  <li key={index}>{ingredient}</li>
+                ))}
+              </ul>
+            )}
+            {detectedIngredients.length > 0 && !scanError && (
+              <a href={`/recipes?ingredients=${detectedIngredients.join(',')}`} className="btn-primary">
+                Find Recipes with These Ingredients
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Flash Effect */}
+        <div className={`flash ${flashActive ? 'active' : ''}`}></div>
+        
+        {/* Hidden Canvas for Photo Capture */}
+        <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+      </section>
     </main>
   );
 };

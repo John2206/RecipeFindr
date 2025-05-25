@@ -1,14 +1,3 @@
-/// <reference types="vite/client" />
-
-interface ImportMetaEnv {
-  readonly VITE_API_BASE_URL?: string;
-  // add other env variables here if needed
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
 import React, { createContext } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar.tsx'; 
@@ -21,7 +10,7 @@ import LoginPage from './pages/LoginPage.tsx';
 import RegisterPage from './pages/RegisterPage.tsx';
 import RecipesPage from './pages/RecipesPage.tsx';
 import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import { appConfig } from './config/app';
 import './App.css';
 import './index.css';
 
@@ -30,12 +19,12 @@ interface APIContextType {
   baseUrl: string;
 }
 
-export const APIContext = createContext<APIContextType>({ baseUrl: 'http://localhost:5002' });
+export const APIContext = createContext<APIContextType>({ baseUrl: appConfig.apiBaseUrl });
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <APIContext.Provider value={{ baseUrl: 'http://localhost:5002' }}>
+      <APIContext.Provider value={{ baseUrl: appConfig.apiBaseUrl }}>
         <Navbar />
         <main style={{ paddingTop: '60px', minHeight: 'calc(100vh - 120px)' }}>
           <Routes>

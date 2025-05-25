@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { APIContext } from '../App';
 
 interface Ingredient {
@@ -58,11 +58,6 @@ const DisplayRecipesPage: React.FC = () => {
     };
     fetchRecipeDetails();
   }, [recipeId, contextBaseUrl]);
-
-  const handlePrintRecipe = () => {
-    if (!recipe) return;
-    // ...existing code...
-  };
 
   if (isLoading) return <div className="loading">Loading recipe details...</div>;
   if (error) return <div className="error-message">{error}</div>;

@@ -1,6 +1,4 @@
-import React, { useState, useContext, useRef, ChangeEvent, FormEvent } from 'react';
-import { APIContext } from '../App';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, FormEvent } from 'react';
 
 const cuisineOptions = [
   '', 'Italian', 'Mexican', 'Indian', 'Chinese', 'Mediterranean', 'Japanese', 'Thai', 'French'
@@ -12,7 +10,6 @@ const dietaryOptions = [
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const RecipesPage: React.FC = () => {
-  const { baseUrl: contextBaseUrl } = useContext(APIContext);
   const [ingredientsInput, setIngredientsInput] = useState('');
   const [cuisine, setCuisine] = useState('');
   const [dietary, setDietary] = useState('');
