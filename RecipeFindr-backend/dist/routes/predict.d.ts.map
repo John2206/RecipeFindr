@@ -1,1 +1,1 @@
-{"version":3,"file":"predict.d.ts","sourceRoot":"","sources":["../../routes/predict.ts"],"names":[],"mappings":"AAKA,QAAA,MAAM,MAAM,4CAAmB,CAAC;AA8DhC,eAAe,MAAM,CAAC"}
+{"version":3,"file":"predict.d.ts","sourceRoot":"","sources":["../../routes/predict.ts"],"names":[],"mappings":"AAKA,QAAA,MAAM,MAAM,KAAmB,CAAC;AA8DhC,eAAe,MAAM,CAAC"}
